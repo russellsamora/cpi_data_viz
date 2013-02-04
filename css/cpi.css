@@ -1,18 +1,30 @@
-*{
-    margin:0;
-    padding:0;
+*,
+*:after,
+*:before {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
 }
 body{
     background: #fff;
-    font-family: Georgia, sans-serif;
+    font-family: "default-gothic",sans-serif;
     color: #333;
 }
 a{
     text-decoration: none;
+    font-family: Georgia, serif;
     color: #fff;
 }
 h1,h2,h3 {
   font-family: "vinyl",sans-serif;
+}
+.vizContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
 }
 .navigation {
     background: #ed3e69;
@@ -36,11 +48,167 @@ h1,h2,h3 {
     font-size: .8em;
     padding: 11px 40px 0 0;
 }
-
 .navigation ul li {
     width: 80px;
     float: right;
 }
 .wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 1024px;
+    min-height: 600px;
+}
+.intro {
+    width: 480px;
+    border-radius: 5px;
+    margin: 100px auto;
+}
+
+::selection {
+    background: transparent; 
+}
+
+::-moz-selection {
+    background: transparent; 
+}
+
+/* DEMO 2 */
+.filters {
+    margin-top:80px;
+    z-index: 9999;
+}
+.wrapper-dropdown {
+    /* Size and position */
+    position: relative; /* Enable absolute positionning for children and pseudo elements */
+    width: 160px;
+    padding: 10px 15px;
+    margin: 0 20px;
+    float: left;
+    /* Styles */
+    background: #333;
+    color: #fff;
+    border-left: 5px solid #ccc;
+    cursor: pointer;
+    outline: none;
+}
+
+.wrapper-dropdown:after {
+    content: "";
+    width: 0;
+    height: 0;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    margin-top: -3px;
+    border-width: 6px 6px 0 6px;
+    border-style: solid;
+    border-color: grey transparent;
+}
+
+.wrapper-dropdown .dropdown {
+  /* Size & position */
+    position: absolute;
+    top: 100%;
+    left: -5px;
+    right: 0px;
+
+    /* Styles */
+    background: #333;
+    -webkit-transition: all 0.3s ease-out;
+    -moz-transition: all 0.3s ease-out;
+    -ms-transition: all 0.3s ease-out;
+    -o-transition: all 0.3s ease-out;
+    transition: all 0.3s ease-out;
+    list-style: none;
+
+    /* Hiding */
+    opacity: 0;
+    pointer-events: none;
+}
+
+.wrapper-dropdown .dropdown li a {
+    display: block;
+    text-decoration: none;
+    color: #fff;
+    border-left: 5px solid;
+    padding: 10px;
+    -webkit-transition: all 0.3s ease-out;
+    -moz-transition: all 0.3s ease-out;
+    -ms-transition: all 0.3s ease-out;
+    -o-transition: all 0.3s ease-out;
+    transition: all 0.3s ease-out; 
+    border-left-color: #ccc;
+    font-family: 'default-gothic', sans-serif;
+}
+
+.wrapper-dropdown .dropdown li i {
+    margin-right: 5px;
+    color: #fff;
+}
+
+/* Hover state */
+
+.wrapper-dropdown .dropdown li:hover a {
+    color: #ccc;
+}
+
+/* Active state */
+
+.wrapper-dropdown.active:after {
+    border-width: 0 6px 6px 6px;
+}
+
+.wrapper-dropdown.active .dropdown {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.progress-meter .meter-background {
+    fill: #222;
+}
+  
+.progress-meter .meter-foreground {
+    fill: rgba(219, 222, 239,.5);
+}
+  
+.helpButton {
+    width: 48px;
+    padding:5px;
+    font-size: 2em;
+    text-align: center;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    color: #fff;
+    border-radius: 10px;
+    background:#ed3e69;
+    z-index: 9996;
+    cursor: pointer;
+}
+.helpArea {
+    display: none;
+    background: #333;
+    z-index: 9997;
+    background: rgba(20,20,20,.9);
+    color: #fff;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.helpArea .content {
+    width: 960px;
+    margin: 0 auto;
+}
+.helpArea .content h1 {
     margin-top: 100px;
+    font-size: 3em;
+}
+.helpArea .content p {
+    margin-top: 20px;
+    font-size: 1.5em;
 }
