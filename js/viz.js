@@ -88,6 +88,11 @@ $(function() {
         $('.helpArea').fadeOut();
     });
 
+    //slide the info pane
+    $('.globalLink').bind('click', function() {
+        $('.globalInfo').toggleClass('globalDropdown');
+    });
+
     //resize bind
     $(w).bind('resize', resize);
 

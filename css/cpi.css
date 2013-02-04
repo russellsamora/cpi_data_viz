@@ -62,7 +62,7 @@ h1,h2,h3 {
     width: 100%;
     height: 600px;
     border-bottom: 2px solid red;
-    min-width: 1024px;
+    min-width: 960px;
     min-height: 600px;
 }
 .intro {
@@ -84,6 +84,7 @@ h1,h2,h3 {
     position: absolute;
     top: 38px;
     width: 100%;
+    min-width: 960px;
     height: 37px;
     background: #7FA764;
     z-index: 50;
@@ -239,6 +240,20 @@ h1,h2,h3 {
     -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
     -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
     box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    transition: all .2s;
+    -webkit-transition: all .2s;
+    -moz-transition: all .2s;
+}
+.globalInfo img {
+    float: left;
+}
+.globalInfo h2 {
+    float: left;
+    padding: 5px;
+}
+
+.globalDropdown {
+    height: 500px;
 }
 .navigation h2 {
     padding: 5px 10px;
@@ -257,4 +272,11 @@ h1,h2,h3 {
     background: #333;
     background: rgba(20,20,20,.8);
     color: #eee;
+}
+.globalLink {
+    cursor: pointer;
+}
+h2.currentViz {
+    color: #7E0C28;
+    text-shadow: 1px 1px 1px rgba(250,250,250,.5);
 }
