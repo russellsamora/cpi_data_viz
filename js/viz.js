@@ -85,7 +85,7 @@ $(function() {
         $('.helpArea').fadeIn();
     });
     $('.helpArea').bind('click', function() {
-        $(this).fadeOut();
+        $('.helpArea').fadeOut();
     });
 
     //resize bind
@@ -137,7 +137,14 @@ function incrementProgress() {
     meter_progress += meter_rate;
     if(meter_progress >= 1) {
         meter_progress = 1;
-        meter.remove();
+        meter
+        .transition()
+        .duration(1000)
+        .style("opacity",0)
+        .each("end",function() {
+            d3.select(this).remove();
+            $('.el_grupo').fadeIn();
+        });
     }
     else {
         setTimeout(incrementProgress, 17);
@@ -160,22 +167,38 @@ function init() {
     
     setTimeout(function() {
         meter_rate = 0.02;
-        var x = viz.selectAll('circle')
-        .data(testData)
-        .enter()
-        .append('circle')
-            .attr('cx', function(d,i) {
-                return i * 200 + 100;
-            })
-            .attr('cy', centerY)
-            .attr('r', function(d) {
-                return d.age;
-            });
+        grupo = viz.append('g')
+                .attr('class', 'el_grupo')
+                .selectAll('circle')
+                .data(testData)
+                .enter()
+                .append('circle')
+                    .attr('fill', 'rgba(200,200,200,.5)')
+                    .attr('stroke', 'rgba(0,0,0,.7)')
+                    .attr('stroke-width', 4)
+                    .attr('cx', function(d,i) {
+                        return i * 200 + 100;
+                    })
+                    .attr('cy', centerY)
+                    .attr('r', function(d) {
+                        return d.age;
+                    })
+                    .on('mouseover', showText)
+                    .on('mouseout', hideText);
     },200);
-
-    
-
-    
     
 }
 
+function showText(d) {
+    var x = d3.event.offsetX,
+        y = d3.event.offsetY;
+
+    $('.displayInfo').css({
+        top: y - 100,
+        left: x - 120
+    })
+    .text(d.quote).show();
+}
+function hideText(d) {
+    $('.displayInfo').hide();
+}

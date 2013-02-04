@@ -8,9 +8,9 @@
     margin: 0;
 }
 body{
-    background: #fff;
+    background: #fff url(../img/bg-tile.png);
     font-family: "default-gothic",sans-serif;
-    color: #333;
+    color: #222;
 }
 a{
     text-decoration: none;
@@ -30,9 +30,10 @@ h1,h2,h3 {
     background: #ed3e69;
     color: #fff;
     width: 100%;
+    min-width: 640px;
     height: 38px;
     position: absolute;
-    z-index: 999;
+    z-index: 51;
     top:0;
     left:0;
     /*border-bottom: 2px solid #ccc;*/
@@ -44,7 +45,9 @@ h1,h2,h3 {
     margin: 0 auto;
     list-style: none;
     text-align: right;
-    width: 960px;
+    float: right;
+    width: 200px;
+    min-width: 200px;
     font-size: .8em;
     padding: 11px 40px 0 0;
 }
@@ -57,7 +60,8 @@ h1,h2,h3 {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 600px;
+    border-bottom: 2px solid red;
     min-width: 1024px;
     min-height: 600px;
 }
@@ -77,15 +81,22 @@ h1,h2,h3 {
 
 /* DEMO 2 */
 .filters {
-    margin-top:80px;
-    z-index: 9999;
+    position: absolute;
+    top: 38px;
+    width: 100%;
+    height: 37px;
+    background: #7FA764;
+    z-index: 50;
+    -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
 }
 .wrapper-dropdown {
     /* Size and position */
     position: relative; /* Enable absolute positionning for children and pseudo elements */
     width: 160px;
     padding: 10px 15px;
-    margin: 0 20px;
+    /*margin: 0 20px;*/
     float: left;
     /* Styles */
     background: #333;
@@ -190,13 +201,13 @@ h1,h2,h3 {
 }
 .helpArea {
     display: none;
-    background: #333;
     z-index: 9997;
-    background: rgba(20,20,20,.9);
+    background: #333;
+    background: rgba(20,20,20,0.9);
     color: #fff;
     position: absolute;
-    top: 0;
-    left: 0;
+    bottom: 0;
+    right: 0;
     width: 100%;
     height: 100%;
 }
@@ -211,4 +222,39 @@ h1,h2,h3 {
 .helpArea .content p {
     margin-top: 20px;
     font-size: 1.5em;
+}
+.filters > h2 {
+    float: left;
+    margin: 5px 10px;
+}
+.globalInfo {
+    height: 38px;
+    position: absolute;
+    top: 75px;
+    right: 0;
+    width: 320px;
+    background: #1884A8;
+    color: #fff;
+    z-index: 49;
+    -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+}
+.navigation h2 {
+    padding: 5px 10px;
+    color: #eee;
+    float: left;
+}
+.el_grupo {
+    display: none;
+}
+.displayInfo {
+    display: none;
+    position: absolute;
+    border-radius: 5px;
+    width: 240px;
+    padding: 10px;
+    background: #333;
+    background: rgba(20,20,20,.8);
+    color: #eee;
 }
