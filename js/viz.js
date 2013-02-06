@@ -25,7 +25,8 @@ var currentInfo = null,
     twoPi = 2 * Math.PI,
     formatPercent = d3.format('.0%'),
     meter_rate = 0.001,
-    topBar = 112;
+    topBar = 112,
+    bigData = null;
 
 $(function() {
 
@@ -78,6 +79,12 @@ $(function() {
         $('.helpArea').fadeOut();
     });
 
+    //close response box
+    $('.displayInfo a').bind('click', function(e) {
+        e.preventDefault();
+        $('.displayInfo').fadeOut(100);
+    });
+
     //slide the challenge window
     $('.challengeLink').bind('click', function() {
         clearTimeout(messageTimeout);
@@ -93,22 +100,39 @@ $(function() {
         var padre = $(this).parentsUntil('.filters'),
             curDrop = $(padre[2]).children(),
             index = $(padre[2]).index('.wrapper-dropdown'),
-            txt = '<p data-padre=' + index +'>{' + $(this).text() + '}</p>';
+            text = '{' + $(this).text() + '}',
+            html = '<p data-padre=' + index +'>' + text + '</p>';
 
-        $(curDrop[0]).addClass('activeFilter');
-
-        filterList.append(txt);
-
-        //delete filter on click
-        $('.filterList p').bind('click', function() {
-            //change color of dropdown menu
-            var index = $(this).attr('data-padre'),
-                el = $('.wrapper-dropdown').get(index);
-            $(el).children().removeClass('activeFilter');
-
-            //remove from filter list
-            $(this).remove();
+        //check if the filter exists from that category already, if so, replace
+        var found = false;
+        //go thru each filter, check it data-padre matches index
+        $('.filterList p').each(function(i) {
+            var old = parseInt($(this).attr('data-padre'),10);
+            if(old === index) {
+                $(this).text(text);
+                found = true;
+                return true;
+            }
         });
+
+        //add a new one if the the category is not in filters
+        if(!found) {
+             $(curDrop[0]).addClass('activeFilter');
+
+            filterList.append(html);
+
+            //delete filter on click
+            $('.filterList p').bind('click', function() {
+                //change color of dropdown menu
+                var index = $(this).attr('data-padre'),
+                    el = $('.wrapper-dropdown').get(index);
+                $(el).children().removeClass('activeFilter');
+
+                //remove from filter list
+                $(this).remove();
+            });
+        }
+       
     });
 
     //resize bind
@@ -170,7 +194,8 @@ function incrementProgress() {
             userMessage.fadeIn(200, function() {
                 messageTimeout = setTimeout(function() {
                     userMessage.fadeOut(200);
-                }, 5000);
+                    setupForce();
+                }, 500);
             });
         });
     }
@@ -195,11 +220,13 @@ function init() {
     setTimeout(function() {
         meter_rate = 0.02;
         d3.csv('../data/test.csv',function(csv) {
-            var data = d3.nest()
-                        .key(function(d) {
-                            return d.Race;
-                        })
-                        .entries(csv);
+            // var data = d3.nest()
+            //             .key(function(d) {
+            //                 return d.Race;
+            //             })
+            //             .entries(csv);
+
+            bigData = csv;
         })
         .on('progress', function(event){
         //update progress bar
@@ -212,19 +239,52 @@ function init() {
             console.log('error loading data');
         });
         
-    },200);
-    
+    },200);    
+}
+
+function setupForce() {
+    var force = d3.layout.force()
+                    .nodes(bigData)
+                    .size([width,height])
+                    .charge(function(d){
+                        return -Math.pow(d.Age/2, 2.0) / 4.0;
+                    })
+                    .friction([0.9])
+                    .gravity([-0.01])
+                    .on('tick', function(e) {
+                        nodes.each(moveToCenter(e.alpha))
+                            .attr("cx", function(d) { return d.x; })
+                            .attr("cy", function(d) { return d.y; });
+                    })
+                    .start();
+
+            var nodes = viz.selectAll("circle")
+                        .data(bigData)
+                        .enter()
+                        .append("circle")
+                        .attr("r", function(d) {
+                            return d.Age/2;
+                        })
+                        .classed('defaultCircle',true)
+                        .call(force.drag)
+                        .on('click', showText);
+
+            // force.on("tick", function() {
+            //     nodes.attr("cx", function(d) { return d.x; })
+            //         .attr("cy", function(d) { return d.y; });
+            // });
+}
+
+function moveToCenter(alph) {
+    return function(d) {
+        d.x = d.x + (centerX - d.x) * (0.12) * alph;
+        d.y = d.y + (centerY - d.y) * (0.12) * alph;
+    };
 }
 
 function showText(d) {
-    var x = d3.event.offsetX,
-        y = d3.event.offsetY;
-
-    $('.displayInfo').css({
-        top: y - 100,
-        left: x - 120
-    })
-    .text(d.quote).show();
+    $('.displayInfo .mainResponse').text(d.Comment);
+    $('.displayInfo').show();
 }
 function hideText(d) {
     $('.displayInfo').hide();

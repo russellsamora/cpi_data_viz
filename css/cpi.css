@@ -296,13 +296,33 @@ h1,h2,h3 {
 }
 .displayInfo {
     display: none;
-    position: absolute;
+    position: relative;
     border-radius: 5px;
-    width: 240px;
+    width: 640px;
     padding: 10px;
     background: #333;
     background: rgba(20,20,20,.8);
     color: #eee;
+    margin: 0 auto;
+    margin-top: 130px;
+}
+.displayInfo p {
+    padding: 10px;
+    color: #fff;
+}
+.displayInfo .viewComments {
+    text-align: center;
+    margin: 0 auto;
+    padding: 5px;
+    border-radius: 10px;
+    background:#ed3e69;
+    width: 120px;
+}
+.displayInfo a {
+    text-decoration: none;
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 .challengeLink {
     cursor: pointer;
