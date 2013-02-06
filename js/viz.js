@@ -132,7 +132,37 @@ $(function() {
                 $(this).remove();
             });
         }
-       
+    });
+
+    //filter search
+    $('.submitSearch').bind('click', function(e) {
+        e.preventDefault();
+        var text = '{' + $('.searchField').val() + '}',
+            html = '<p data-padre=999>' + text + '</p>';
+
+        //check if the filter exists from that category already, if so, replace
+        var found = false;
+        //go thru each filter, check it data-padre matches index
+        $('.filterList p').each(function(i) {
+            var old = parseInt($(this).attr('data-padre'),10);
+            if(old === 999) {
+                $(this).text(text);
+                found = true;
+                return true;
+            }
+        });
+
+        //add a new one if the the category is not in filters
+        if(!found) {
+            filterList.append(html);
+
+            //delete filter on click
+            $('.filterList p').bind('click', function() {
+                //remove from filter list
+                $(this).remove();
+            });
+        }
+        $('.searchField').val('');
     });
 
     //resize bind

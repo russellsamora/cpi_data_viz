@@ -3,16 +3,16 @@
 <html>
     <head>
         <title>Community PlanIt</title>
-        <script type="text/javascript" src="//use.typekit.net/yxm0fht.js"></script>
-        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+        <script type='text/javascript' src='//use.typekit.net/yxm0fht.js'></script>
+        <script type='text/javascript'>try{Typekit.load();}catch(e){}</script>
         
         <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
         <meta name='description' content='Data Visualization to Community PlanIt'/>
         <link rel='stylesheet' href='css/cpi.css' type='text/css'/>
 
-        <script src="js/jquery-1.9.0.js"></script>
-        <script src="js/d3.v3.js"></script>
-        <script src="js/viz.js"></script>
+        <script src='js/jquery-1.9.0.js'></script>
+        <script src='js/d3.v3.js'></script>
+        <script src='js/viz.js'></script>
     </head>
     <body>
         <div class = 'navigation'>
@@ -21,8 +21,8 @@
             <h2>[2]</h2>
             <h2>[3]</h2>
             <ul>
-                <li><a href="http://communityplanit.org">Home</a></li>
-                <li><a href="http://communityplanit.org/all">All Games</a></li>
+                <li><a href='http://communityplanit.org'>Home</a></li>
+                <li><a href='http://communityplanit.org/all'>All Games</a></li>
             </ul>
         </div>
         <div class = 'wrapper'>
@@ -80,58 +80,59 @@
                 </ul>
             </div>
             <div class = 'filters'>
-                <h2>Filter by: </h2>
-                <div id="drop_gender" class="wrapper-dropdown" tabindex="1"><span class = 'current'>Gender</span>
-                    <ul class="dropdown">
-                        <li><a href="#">Male</a></li>
-                        <li><a href="#">Female</a></li>
-                        <li><a href="#">Unspecified</a></li>
+                <h2>Filters</h2>
+                <div id='drop_gender' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Gender</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Male</a></li>
+                        <li><a href='#'>Female</a></li>
+                        <li><a href='#'>Unspecified</a></li>
                     </ul>
                 </div>
-                 <div id="drop_stake" class="wrapper-dropdown" tabindex="1"><span class = 'current'>Stake</span>
-                    <ul class="dropdown">
-                        <li><a href="#">Business Owner</a></li>
-                        <li><a href="#">Community Organizer</a></li>
-                        <li><a href="#">Educator</a></li>
-                        <li><a href="#">Former Resident</a></li>
-                        <li><a href="#">Current Resident</a></li>
-                        <li><a href="#">Observer</a></li>
-                        <li><a href="#">Religious Leader</a></li>
-                        <li><a href="#">Student</a></li>
-                        <li><a href="#">Volunteer</a></li>
-                        <li><a href="#">Worker</a></li>
-                        <li><a href="#">Unspecified</a></li>
+                 <div id='drop_stake' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Stake</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Business Owner</a></li>
+                        <li><a href='#'>Community Organizer</a></li>
+                        <li><a href='#'>Educator</a></li>
+                        <li><a href='#'>Former Resident</a></li>
+                        <li><a href='#'>Current Resident</a></li>
+                        <li><a href='#'>Observer</a></li>
+                        <li><a href='#'>Religious Leader</a></li>
+                        <li><a href='#'>Student</a></li>
+                        <li><a href='#'>Volunteer</a></li>
+                        <li><a href='#'>Worker</a></li>
+                        <li><a href='#'>Unspecified</a></li>
                     </ul>
                 </div>
-                 <div id="drop_age" class="wrapper-dropdown" tabindex="1"><span class = 'current'>Age</span>
-                    <ul class="dropdown">
-                        <li><a href="#">Less than 18</a></li>
-                        <li><a href="#">18-30</a></li>
-                        <li><a href="#">31-40</a></li>
-                        <li><a href="#">40-50</a></li>
-                        <li><a href="#">over 50</a></li>
+                 <div id='drop_age' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Age</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Less than 18</a></li>
+                        <li><a href='#'>18-30</a></li>
+                        <li><a href='#'>31-40</a></li>
+                        <li><a href='#'>40-50</a></li>
+                        <li><a href='#'>over 50</a></li>
                     </ul>
                 </div>
-                <div id="drop_race" class="wrapper-dropdown" tabindex="1"><span class = 'current'>Race</span>
-                    <ul class="dropdown">
-                        <li><a href="#">Black or African American</a></li>
-                        <li><a href="#">Hispanic, Latino, or Spanish</a></li>
-                        <li><a href="#">White</a></li>
-                        <li><a href="#">Multiracial</a></li>
-                        <li><a href="#">American Indian or Alaskan Native</a></li>
-                        <li><a href="#">Other</a></li>
-                        <li><a href="#">Unspecified</a></li>
+                <div id='drop_race' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Race</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Black or African American</a></li>
+                        <li><a href='#'>Hispanic, Latino, or Spanish</a></li>
+                        <li><a href='#'>White</a></li>
+                        <li><a href='#'>Multiracial</a></li>
+                        <li><a href='#'>American Indian or Alaskan Native</a></li>
+                        <li><a href='#'>Other</a></li>
+                        <li><a href='#'>Unspecified</a></li>
                     </ul>
                 </div>
-                <div id="drop_income" class="wrapper-dropdown" tabindex="1"><span class = 'current'>Income</span>
-                    <ul class="dropdown">
-                        <li><a href="#">$0-$25000</a></li>
-                        <li><a href="#">$25000-$50000</a></li>
-                        <li><a href="#">$50000-$75000</a></li>
-                        <li><a href="#">$75000-$100000</a></li>
-                        <li><a href="#">over $100000</a></li>
+                <div id='drop_income' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Income</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>$0-$25000</a></li>
+                        <li><a href='#'>$25000-$50000</a></li>
+                        <li><a href='#'>$50000-$75000</a></li>
+                        <li><a href='#'>$75000-$100000</a></li>
+                        <li><a href='#'>over $100000</a></li>
                     </ul>
                 </div>
+                <p class='wrapper-search'><input type='text' name='search' class='searchField' placeholder='keyword...'><span class='submitSearch'>+</span></p>
             </div>
             <div class = 'currentInfo'>
             </div>
