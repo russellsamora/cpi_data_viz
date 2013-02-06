@@ -26,7 +26,10 @@ var currentInfo = null,
     formatPercent = d3.format('.0%'),
     meter_rate = 0.001,
     topBar = 112,
-    bigData = null;
+    bigData = null,
+    showingComments = false,
+    nodes = null,
+    force = null;
 
 $(function() {
 
@@ -82,7 +85,12 @@ $(function() {
     //close response box
     $('.displayInfo a').bind('click', function(e) {
         e.preventDefault();
-        $('.displayInfo').fadeOut(100);
+
+        $('.displayInfo').fadeOut(100, function() {
+            $('.allComments').hide();
+            $('.viewComments').text('view comments');
+            showingComments = false;
+        });
     });
 
     //slide the challenge window
@@ -165,6 +173,19 @@ $(function() {
         $('.searchField').val('');
     });
 
+    //view more comments
+    $('.viewComments').bind('click', function() {
+        if(showingComments) {
+            $(this).text('view comments');
+            showingComments = false;
+        }
+        else {
+            $(this).text('hide comments');
+            showingComments = true;
+        }
+        
+        $('.allComments').toggle();
+    });
     //resize bind
     $(w).bind('resize', resize);
 
@@ -178,6 +199,7 @@ function resize() {
     height = w.height();
     centerX = Math.floor(width / 2);
     centerY = Math.floor(height / 2);
+    $('.allComments').css('max-height', height - 300);
     viz.attr('width', width-1).attr('height', height-1);
     wrapper.css('height', height);
 }
@@ -273,22 +295,21 @@ function init() {
 }
 
 function setupForce() {
-    var force = d3.layout.force()
-                    .nodes(bigData)
-                    .size([width,height])
-                    .charge(function(d){
-                        return -Math.pow(d.Age/2, 2.0) / 4.0;
-                    })
-                    .friction([0.9])
-                    .gravity([-0.01])
-                    .on('tick', function(e) {
-                        nodes.each(moveToCenter(e.alpha))
-                            .attr("cx", function(d) { return d.x; })
-                            .attr("cy", function(d) { return d.y; });
-                    })
-                    .start();
+    force = d3.layout.force()
+                .nodes(bigData)
+                .size([width,height])
+                .charge(function(d){
+                    return -Math.pow(d.Age/2, 2.0) / 4.0;
+                })
+                .friction([0.9])
+                .gravity([-0.01])
+                .on('tick', function(e) {
+                    nodes.each(moveToCenter(e.alpha))
+                        .attr("cx", function(d) { return d.x; })
+                        .attr("cy", function(d) { return d.y; });
+                });
 
-            var nodes = viz.selectAll("circle")
+                nodes = viz.selectAll("circle")
                         .data(bigData)
                         .enter()
                         .append("circle")
@@ -303,6 +324,7 @@ function setupForce() {
             //     nodes.attr("cx", function(d) { return d.x; })
             //         .attr("cy", function(d) { return d.y; });
             // });
+    start(); 
 }
 
 function moveToCenter(alph) {
@@ -318,4 +340,13 @@ function showText(d) {
 }
 function hideText(d) {
     $('.displayInfo').hide();
+}
+
+function start() {
+    
+    //nodes = node.data(force.nodes(), function(d) { return d.id;});
+    //nodes.enter().append("circle").attr("class", function(d) { return "node " + d.id; }).attr("r", 8);
+    //node.exit().remove();
+
+    force.start();
 }

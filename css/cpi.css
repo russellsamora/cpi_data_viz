@@ -1,6 +1,4 @@
-*,
-*:after,
-*:before {
+*{
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -366,6 +364,13 @@ input[type=text] {
     border-radius: 10px;
     background:#ed3e69;
     width: 120px;
+    cursor: pointer;
+}
+.displayInfo .allComments {
+    display: none;
+    min-height: 100px;
+    max-height: 360px;
+    overflow: auto;
 }
 .displayInfo a {
     text-decoration: none;
