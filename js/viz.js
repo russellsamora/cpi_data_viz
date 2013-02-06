@@ -1,5 +1,5 @@
 var currentInfo = null,
-    globalInfo = null,
+    challengeInfo = null,
     vizContainer = null,
     drop_stake = null,
     drop_gender = null,
@@ -9,6 +9,10 @@ var currentInfo = null,
     dropdown = null,
     viz = null,
     w = null,
+    wrapper = null,
+    userMessage = null,
+    messageTimeout = null,
+    filterList = null,
     width = 0,
     height = 0,
     centerX = 0,
@@ -21,34 +25,13 @@ var currentInfo = null,
     twoPi = 2 * Math.PI,
     formatPercent = d3.format('.0%'),
     meter_rate = 0.001,
-    testData = [
-        {
-            name: 'jerry',
-            age: 54,
-            quote: 'I like bananas!'
-        },
-        {
-            name: 'bob',
-            age: 24,
-            quote: 'Where are the pandas?'
-        },
-        {
-            name: 'steph',
-            age: 18,
-            quote: 'Put a ring on it.'
-        },
-        {
-            name: 'rachel',
-            age: 86,
-            quote: 'I am really old.'
-        }
-    ];
+    topBar = 112;
 
 $(function() {
 
     //create selector vars
     currentInfo = $('.currentInfo');
-    globalInfo = $('.globalInfo');
+    challengeInfo = $('.challengeInfo');
     vizContainer = $('.vizContainer');
     drop_stake = $('#drop_stake');
     drop_gender = $('#drop_gender');
@@ -56,6 +39,9 @@ $(function() {
     drop_income = $('#drop_income');
     drop_age = $('#drop_age');
     dropdown = $('.wrapper-dropdown');
+    wrapper = $('.wrapper');
+    userMessage = $('.userMessage');
+    filterList = $('.filterList');
     w = $(window);
 
     //dropdown click events
@@ -72,12 +58,16 @@ $(function() {
         if(makeActive) {
             $(this).toggleClass('active');
         }
-        
     });
 
     //click off dropdown
     vizContainer.click(function() {
         dropdown.removeClass('active');
+        if($('.challengeInfo').is('.challengeDropdown')) {
+            $('.downButton').toggleClass('rotateNinety');
+            $('.challengeInfo').toggleClass('challengeDropdown');
+            $('.challengeInfo ul').fadeToggle(100);
+        }
     });
 
     //help button
@@ -88,9 +78,37 @@ $(function() {
         $('.helpArea').fadeOut();
     });
 
-    //slide the info pane
-    $('.globalLink').bind('click', function() {
-        $('.globalInfo').toggleClass('globalDropdown');
+    //slide the challenge window
+    $('.challengeLink').bind('click', function() {
+        clearTimeout(messageTimeout);
+        userMessage.fadeOut();
+        $('.downButton').toggleClass('rotateNinety');
+        $('.challengeInfo').toggleClass('challengeDropdown');
+        $('.challengeInfo ul').fadeToggle(100);
+    });
+
+    //filter click
+    $('.dropdown li a').bind('click', function(e) {
+        e.preventDefault();
+        var padre = $(this).parentsUntil('.filters'),
+            curDrop = $(padre[2]).children(),
+            index = $(padre[2]).index('.wrapper-dropdown'),
+            txt = '<p data-padre=' + index +'>{' + $(this).text() + '}</p>';
+
+        $(curDrop[0]).addClass('activeFilter');
+
+        filterList.append(txt);
+
+        //delete filter on click
+        $('.filterList p').bind('click', function() {
+            //change color of dropdown menu
+            var index = $(this).attr('data-padre'),
+                el = $('.wrapper-dropdown').get(index);
+            $(el).children().removeClass('activeFilter');
+
+            //remove from filter list
+            $(this).remove();
+        });
     });
 
     //resize bind
@@ -98,6 +116,7 @@ $(function() {
 
     //begin
     init();
+    
 });
 
 function resize() {
@@ -105,9 +124,8 @@ function resize() {
     height = w.height();
     centerX = Math.floor(width / 2);
     centerY = Math.floor(height / 2);
-    
-    //reset size of svg area
-    viz.attr('width', width).attr('height', height);
+    viz.attr('width', width-1).attr('height', height-1);
+    wrapper.css('height', height);
 }
 
 function createPreloader() {
@@ -134,6 +152,7 @@ function createPreloader() {
         .attr('text-anchor', 'middle')
         .attr('dy', '.35em');
 
+    
     incrementProgress();
 }
 
@@ -148,7 +167,11 @@ function incrementProgress() {
         .style("opacity",0)
         .each("end",function() {
             d3.select(this).remove();
-            $('.el_grupo').fadeIn();
+            userMessage.fadeIn(200, function() {
+                messageTimeout = setTimeout(function() {
+                    userMessage.fadeOut(200);
+                }, 5000);
+            });
         });
     }
     else {
@@ -165,31 +188,30 @@ function incrementProgress() {
 function init() {
     //setup d3
     viz = d3.select('.vizContainer').append('svg');
-    
     resize();
-
     createPreloader();
     
+    //temp thing until we get real data
     setTimeout(function() {
         meter_rate = 0.02;
-        grupo = viz.append('g')
-                .attr('class', 'el_grupo')
-                .selectAll('circle')
-                .data(testData)
-                .enter()
-                .append('circle')
-                    .attr('fill', 'rgba(200,200,200,.5)')
-                    .attr('stroke', 'rgba(0,0,0,.7)')
-                    .attr('stroke-width', 4)
-                    .attr('cx', function(d,i) {
-                        return i * 200 + 100;
-                    })
-                    .attr('cy', centerY)
-                    .attr('r', function(d) {
-                        return d.age;
-                    })
-                    .on('mouseover', showText)
-                    .on('mouseout', hideText);
+        d3.csv('../data/test.csv',function(csv) {
+            var data = d3.nest()
+                        .key(function(d) {
+                            return d.Race;
+                        })
+                        .entries(csv);
+        })
+        .on('progress', function(event){
+        //update progress bar
+            if (event.lengthComputable) {
+                var percentComplete = Math.round(event.loaded * 100 / event.total);
+                console.log(percentComplete);
+            }
+        })
+        .on('error', function() {
+            console.log('error loading data');
+        });
+        
     },200);
     
 }
