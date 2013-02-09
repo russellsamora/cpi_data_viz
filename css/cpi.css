@@ -83,6 +83,7 @@ h1,h2,h3 {
     min-width: 1024px;
     height: 37px;
     background: #7FA764;
+    /*background: #aaa;*/
     z-index: 50;
     -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
     -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
@@ -282,6 +283,7 @@ input[type=text] {
     width: 100%;
     min-width: 1024px;
     background: #1884A8;
+    /*background: #555;*/
     color: #fff;
     z-index: 49;
     -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
@@ -325,7 +327,7 @@ input[type=text] {
     cursor: pointer;
 }
 .challengeInfo ul li.missionTitle {
-    color: #0D4659;
+    color: #EA446A;
     font-size: 1.6em;
     font-family: 'vinyl', sans-serif;
 }
@@ -394,9 +396,12 @@ h2.currentViz {
 }
 
 .defaultCircle {
-    fill: rgba(200,200,200,0.5);
-    stroke: rgba(0,0,0,0.7);
+    /*fill: rgba(200,200,200,0.5);*/
+    /*stroke: rgba(0,0,0,0.7);*/
     stroke-width: 4;
+}
+.backgroundCircle {
+    opacity: 0.2;
 }
 
 .userMessage {
@@ -410,8 +415,8 @@ h2.currentViz {
 
 .filterList {
     position: absolute;
-    left: 0;
-    bottom: 0;
+    left: 5px;
+    bottom: 10px;
 }
 .filterList p {
     float: left;
@@ -419,6 +424,8 @@ h2.currentViz {
     padding: 5px 15px;
     color: #ADCC8C;
     color: rgba(173, 204, 140, .8);
+    /*color: #666;*/
+    /*color: rgba(50,50,50,.5);*/
     -webkit-transition: all 0.3s;
     -moz-transition: all 0.3s;
     -ms-transition: all 0.3s;
@@ -432,4 +439,5 @@ h2.currentViz {
 }
 .activeFilter {
     color: #ADCC8C;
+    /*color: #EA446A;*/
 }

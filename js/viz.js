@@ -31,7 +31,11 @@ var currentInfo = null,
     force = null,
     foci = 1,
     currentFilters = [],
-    challengeData = null;
+    challengeData = null,
+    maxLikes = 0,
+    maxComments = 0,
+    radiusScale = null,
+    minRadius = 8;
 
 $(function() {
     //create selector vars
@@ -141,6 +145,7 @@ $(function() {
 
                 //remove from filter list
                 $(this).remove();
+                updateData();
             });
         }
 
@@ -204,10 +209,11 @@ function resize() {
     width = $(window).width();
     height = $(window).height();
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2);
+    centerY = Math.floor(height / 2) + 60;
     $('.allComments').css('max-height', height - 300);
     viz.attr('width', width-1).attr('height', height-4);
     wrapper.css('height', height-1);
+    /*****TO DO: ** should reset scale here and then update circles *****/
 }
 
 function createPreloader() {
@@ -246,8 +252,8 @@ function incrementProgress() {
         meter
         .transition()
         .duration(1000)
-        .style("opacity",0)
-        .each("end",function() {
+        .style('opacity',0)
+        .each('end',function() {
             d3.select(this).remove();
             userMessage.fadeIn(200, function() {
                 messageTimeout = setTimeout(function() {
@@ -278,7 +284,7 @@ function init() {
     //temp thing until we get real data
     
     meter_rate = 0.02;
-    d3.csv('../data/test.csv',function(csv) {
+    d3.csv('../data/test3.csv',function(csv) {
         // var data = d3.nest()
         //             .key(function(d) {
         //                 return d.Race;
@@ -286,10 +292,8 @@ function init() {
         //             .entries(csv);
 
         bigData = csv;
-        challengeData = bigData;
-        challengeData.forEach(function(o,i) {
-            o.focus = 1;
-        });
+        
+        refineData();
     })
     .on('progress', function(event){
     //update progress bar
@@ -304,41 +308,94 @@ function init() {
     
 }
 
+function refineData() {
+    //go thru each user and refine stuff (ie. change birth year to age group)
+    bigData.forEach(function(o,i) {
+        o.focus = 1;
+        //check if there IS a birth year
+        if(o.birth.length > 0) {
+            var age = 2013 - o.birth;
+            if(age < 18) {
+                o.birth = 1;
+            }
+            else if(age < 35) {
+                o.birth = 2;
+            }
+            else if(age < 50) {
+                o.birth = 3;
+            }
+            else if(age < 65) {
+                o.birth = 4;
+            }
+            else {
+                o.birth = 5;
+            }
+        }
+        else {
+            //unspecified
+            o.birth = 6;
+        }
+    });
+
+
+    maxLikes = d3.max(bigData, function(d,i) {
+        var num = parseInt(d.likes, 10);
+        return num;
+
+    });
+    maxComments = d3.max(bigData, function(d,i) {
+        var num = parseInt(d.comments, 10);
+        return num;
+    });
+        
+    setScales();
+
+    challengeData = bigData;
+}
 function setupForce() {
     force = d3.layout.force()
                 .nodes(challengeData)
                 .size([width,height])
                 .charge(function(d){
-                    return -Math.pow(d.Age/2, 2.0) / 4.0;
+                    var sz = radiusScale(d.comments);
+                    return -Math.pow(sz, 2.0) / 4.0;
                 })
                 .friction([0.9])
                 .gravity([-0.01])
                 .on('tick', function(e) {
                     nodes.each(moveToCenter(e.alpha))
-                        .attr("cx", function(d) { return d.x; })
-                        .attr("cy", function(d) { return d.y; });
+                        .attr('cx', function(d) { return d.x; })
+                        .attr('cy', function(d) { return d.y; });
                 });
 
-                nodes = viz.selectAll("circle")
+                nodes = viz.selectAll('circle')
                         .data(challengeData)
                         .enter()
-                        .append("circle")
-                        .attr("r", function(d) {
-                            return d.Age/2;
+                        .append('circle')
+                        .attr('r', function(d) {
+                            return radiusScale(d.comments);
+                        })
+                        .style('fill', function(d) {
+                            return colorScale(d.likes);
+                        })
+                        .style('stroke', function(d) {
+                            var col = d3.rgb(colorScale(d.likes));
+                            return col.darker();
                         })
                         .classed('defaultCircle',true)
                         .call(force.drag)
                         .on('click', showText);
 
     
-            // force.on("tick", function() {
-            //     nodes.attr("cx", function(d) { return d.x; })
-            //         .attr("cy", function(d) { return d.y; });
+            // force.on('tick', function() {
+            //     nodes.attr('cx', function(d) { return d.x; })
+            //         .attr('cy', function(d) { return d.y; });
             // });
     start();
 }
 
 function moveToCenter(alph) {
+    
     return function(d) {
         var targetX = Math.floor((d.focus / (foci+1)) * width);
         d.x = d.x + (targetX - d.x) * (0.12) * alph;
@@ -347,7 +404,7 @@ function moveToCenter(alph) {
 }
 
 function showText(d) {
-    $('.displayInfo .mainResponse').text(d.Comment);
+    $('.displayInfo .mainResponse').text(d.response);
     $('.displayInfo').show();
 }
 function hideText(d) {
@@ -357,7 +414,7 @@ function hideText(d) {
 function start() {
     
     //nodes = node.data(force.nodes(), function(d) { return d.id;});
-    //nodes.enter().append("circle").attr("class", function(d) { return "node " + d.id; }).attr("r", 8);
+    //nodes.enter().append('circle').attr('class', function(d) { return 'node ' + d.id; }).attr('r', 8);
     //node.exit().remove();
 
     force.start();
@@ -373,7 +430,7 @@ function updateData() {
             padre = $(this).attr('data-padre'),
             el = $('.wrapper-dropdown').get(padre),
             child = $(el).children()[0],
-            catName = $(child).text();
+            catName = $(child).text().toLowerCase();
 
             tempFilter = {
                 category: catName,
@@ -382,22 +439,50 @@ function updateData() {
             currentFilters.push(tempFilter);
     });
 
-    console.log(currentFilters.length);
     if(currentFilters.length > 0) {
         foci = 2;
+        challengeData.forEach(function(o,i) {
+            o.focus = 1;
+            for(var a = 0; a < currentFilters.length; a++) {
+                console.log(currentFilters[a].name, [currentFilters[a].category]);
+                if(o[currentFilters[a].category] !== currentFilters[a].name) {
+                    o.focus = 2;
+                    continue;
+                }
+            }
+        });
     }
     else {
         foci = 1;
+        challengeData.forEach(function(o,i) {
+            o.focus = 1;
+        });
     }
-    challengeData.forEach(function(o,i) {
-        for(var a = 0; a < currentFilters.length; a++) {
-            console.log(currentFilters[a].name, o[currentFilters[a].category]);
-            if(o[currentFilters[a].category] === currentFilters[a].name) {
-                o.focus = 1;
-            }
-            else {
-                o.focus = 2;
-            }
+    updateNodes();
+    force.resume();
+}
+
+function updateNodes() {
+    nodes.classed('backgroundCircle', function(d) {
+        if(d.focus === 2) {
+            return true;
+        }
+        else {
+            return false;
         }
     });
+}
+
+function setScales() {
+    //scale down the size of the circles based on the screen dimensions and max # comments
+    var max = Math.floor(height * 0.04),
+        maxRadius =  max > (minRadius * 2) ? max : (minRadius * 2);
+
+    radiusScale = d3.scale.linear().domain([0,maxComments]).range([minRadius,maxRadius]);
+    //PiYG
+    colorScale = d3.scale.ordinal().domain([0,maxLikes]).range(colorbrewer.Greens[7]);
+}
+
+function compareAll() {
+
 }
