@@ -1,0 +1,241 @@
+name,age,gender,stake,response,score,comparative,comments,likes
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Unspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,4
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Unspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Unspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,2
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Unspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,1
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,1
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,1,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,4
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,3
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,4
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,2
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,2
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,3
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,3
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,1,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,2,2
+Bill,18,Male,Student,Who are you?,0,0,2,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,1
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,4
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,0,2
+Eric,33,Unspecified,Worker,I love awesome things are great,10,1.6666666666666667,0,2
+Bill,18,Unspecified,Student,Who are you?,0,0,0,0
+Rachel,55,FeUnspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,3
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Unspecified,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Unspecified,Student,Who are you?,0,0,0,0
+Rachel,55,FeUnspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,4
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,3
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,1
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,2,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,2
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,2,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Unspecified,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Unspecified,Student,Who are you?,0,0,0,0
+Rachel,55,FeUnspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,2
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Unspecified,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Unspecified,Student,Who are you?,0,0,0,0
+Rachel,55,FeUnspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,3
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Unspecified,Worker,I love awesome things are great,10,1.6666666666666667,0,4
+Bill,18,Unspecified,Student,Who are you?,0,0,2,1
+Rachel,55,FeUnspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Unspecified,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Unspecified,Student,Who are you?,0,0,0,0
+Rachel,55,FeUnspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,2
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,0,3
+Eric,33,Unspecified,Worker,I love awesome things are great,10,1.6666666666666667,2,0
+Bill,18,Unspecified,Student,Who are you?,0,0,0,0
+Rachel,55,FeUnspecified,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Unspecified,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,FeUnspecified,Worker,Good bad ugly fat shit,-7,-1.4,2,0
+Steve,34,Unspecified,Teacher,Good bad ugly fat shit,-7,-1.4,2,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,1
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,3
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,4
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,2
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,2,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,4
+Russell,12,Male,Student,This is pretty fun,5,1.25,2,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,2,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,3
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,3
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,2
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,2,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,1,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,2,4
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,2,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,3
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,1
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,1
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,1,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,1,0
+Bill,18,Male,Student,Who are you?,0,0,0,4
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,3
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,3
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,1,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,2
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,3
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,2
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,2
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,4
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,4
+Russell,12,Male,Student,This is pretty fun,5,1.25,2,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,4
+Bill,18,Male,Student,Who are you?,0,0,0,1
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,2
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,1,1
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,3
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,1,0
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,4
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
+Russell,12,Male,Student,This is pretty fun,5,1.25,0,0
+Jesse,48,Female,Worker,Good bad ugly fat shit,-7,-1.4,0,2
+Steve,34,Male,Teacher,Good bad ugly fat shit,-7,-1.4,0,0
+Eric,33,Male,Worker,I love awesome things are great,10,1.6666666666666667,0,0
+Bill,18,Male,Student,Who are you?,0,0,0,0
+Rachel,55,Female,Worker,What the fuck is going on,-4,-0.6666666666666666,0,0
