@@ -433,11 +433,20 @@ h2.currentViz {
     transition: all 0.3s;
 }
 .filterList p:hover {
-    color: #333;
-    color: rgba(20,20,20,.6);
+    color: #EA446A;
+    /*color: rgba(20,20,20,.6);*/
     cursor:url(../img/remove.png) 16 16,default;
 }
 .activeFilter {
     /*color: #ADCC8C;*/
     color: #EA446A;
+}
+.compareLabels p {
+    position: absolute;
+    top: 124px;
+    left: 0;
+    color: #333;
+    color: rgba(20,20,20,.5);
+    font-size: 1em;
+    text-align: center;
 }
