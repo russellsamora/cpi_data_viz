@@ -82,8 +82,8 @@ h1,h2,h3 {
     width: 100%;
     min-width: 1024px;
     height: 37px;
-    /*background: #7FA764;*/
-    background: #aaa;
+    background: #7FA764;
+    /*background: #aaa;*/
     z-index: 50;
     -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
     -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
@@ -282,8 +282,8 @@ input[type=text] {
     /*right: 0;*/
     width: 100%;
     min-width: 1024px;
-    /*background: #1884A8;*/
-    background: #555;
+    background: #1884A8;
+    /*background: #555;*/
     color: #fff;
     z-index: 49;
     -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
@@ -327,7 +327,8 @@ input[type=text] {
     cursor: pointer;
 }
 .challengeInfo ul li.missionTitle {
-    color: #EA446A;
+    /*color: #EA446A;*/
+    color: #333;
     font-size: 1.6em;
     font-family: 'vinyl', sans-serif;
 }
@@ -449,4 +450,13 @@ h2.currentViz {
     color: rgba(20,20,20,.5);
     font-size: 1em;
     text-align: center;
+}
+.inTheBubble {
+    position: absolute;
+    z-index: 99999;
+    color: #fff;
+    font-size: 16px;
+}
+.off {
+    display: none;
 }

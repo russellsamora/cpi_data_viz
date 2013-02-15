@@ -27,7 +27,7 @@ var currentInfo = null,
     topBar = 112,
     bigData = null,
     showingComments = false,
-    nodesData = null,
+    nodesData = [],
     nodesEl = null,
     force = null,
     foci = 1,
@@ -269,7 +269,7 @@ function init() {
     
     viz = d3.select('.vizContainer').append('svg');
     nodesData = [];
-    nodesEl = viz.selectAll('.people');
+    nodesEl = viz.selectAll('.node');
     resize(true);
     createPreloader();
     
@@ -350,67 +350,31 @@ function refineData() {
         return num;
     });
 
-    // console.log(maxPopular, maxLikes, maxComments);
     setScales();
 
     nodesData = bigData;
-    //nodesData = nodesData;
+
+    //add the filter label bubble
+    //nodesData.push({focus: 1, len: 3, label: true, name: 'all'});
 
 }
 function setupForce() {
     force = d3.layout.force()
                 .nodes(nodesData)
                 .size([width,height])
-                .charge(function(d){
-                    // var sz = radiusScale((d.comments + d.likes));
-                    var sz = radiusScale(d.likes);
-                    return -Math.pow(sz, 2.0) / 4.0;
-                })
-                .friction([0.9])
-                .gravity([-0.01])
                 .on('tick', function(e) {
-                    nodesEl.each(moveToCenter(e.alpha))
+                    nodesEl.select('circle').each(moveToCenter(e.alpha))
                         .attr('cx', function(d) { return d.x; })
                         .attr('cy', function(d) { return d.y; });
+                    nodesEl.attr("cx", function(d) { return d.x; })
+                        .attr("cy", function(d) { return d.y; });
+                    nodesEl.select('text').each(moveToCenter(e.alpha))
+                        .attr('x', function(d) { return d.x; })
+                        .attr('y', function(d) { return d.y; });
+                    nodesEl.attr("x", function(d) { return d.x; })
+                        .attr("y", function(d) { return d.y; });
                 });
-
-              // nodes = viz.selectAll('circle')
-              //           .data(nodesData)
-              //           .enter()
-              //           .append('circle')
-              //           .attr('r', function(d) {
-              //               var sz = radiusScale(d.likes);
-              //               return sz;
-              //               // return radiusScale((d.comments + d.likes));
-              //           })
-              //           .style('fill', function(d) {
-                            
-              //               var s = colorScale(parseInt(d.comparative,10));
-              //               //console.log(d.comparative,s);
-              //               return colorScale(d.comparative);
-              //           })
-              //           // .style('stroke', function(d) {
-              //           //     var col = d3.rgb(colorScale(d.comparative));
-              //           //     return col.darker();
-              //           // })
-              //           .classed('defaultCircle',true)
-              //           .call(force.drag)
-              //           .on('click', showText);
-
-                // viz.selectAll('text')
-                //     .data(nodesData)
-                //     .enter()
-                //     .append('text')
-                //     .text(function(d) {
-                //         return d.comments;
-                //    })
-                //    .attr('font-family', 'sans-serif')
-                //    .attr('font-size', '11px')
-                //    .attr('fill', 'white');
-            // force.on('tick', function() {
-            //     nodes.attr('cx', function(d) { return d.x; })
-            //         .attr('cy', function(d) { return d.y; });
-            // });
+    recharge();
     start();
 }
 
@@ -420,6 +384,12 @@ function moveToCenter(alph) {
         var targetX = Math.floor((d.focus / (foci+1)) * width);
         d.x = d.x + (targetX - d.x) * (0.12) * alph;
         d.y = d.y + (centerY - d.y) * (0.12) * alph;
+        // if(d.special === true) {
+        //     $('.inTheBubble').css({
+        //         left: d.x - 13,
+        //         top: d.y - 10
+        //     });
+        // }
     };
 }
 
@@ -431,16 +401,37 @@ function hideText(d) {
     $('.displayInfo').hide();
 }
 
-function start() {
+function start(filter) {
     
     //nodes = node.data(force.nodes(), function(d) { return d.id;});
     //nodes.enter().append('circle').attr('class', function(d) { return 'node ' + d.id; }).attr('r', 8);
     //node.exit().remove();
-    nodesEl = nodesEl.data(force.nodes());
-    nodesEl
-        .enter()
-        .append('circle')
+    
+    //join
+    // console.log(force.nodes());
+    nodesEl = nodesEl.data(force.nodes(), function(d) {
+        return d.user;
+    });
+
+    //update
+
+    //enter
+    var g = nodesEl.enter().append('g')
+        .classed('node', true)
+        .classed('label', function(d) {
+            console.log(d);
+            if(d.label) {
+                return true;
+            }
+            return false;
+        });
+
+    g.append('circle')
         .attr('r', function(d) {
+            if(d.label) {
+                //based the size on the number of letters
+                return d.len * 10;
+            }
             var sz = radiusScale(d.likes);
             return sz;
             // return radiusScale((d.comments + d.likes));
@@ -448,23 +439,79 @@ function start() {
         .style('fill', function(d,i) {
             var s = colorScale(parseInt(d.comparative,10));
             //console.log(d.comparative,s);
+            if(d.label === true) {
+                return 'rgba(0,0,0,0)';
+            }
             return colorScale(d.comparative);
+        });
+
+    g.append('text')
+        .text(function(d) {
+            if(d.label) {
+                return d.name;
+            }
+            return '';
         })
-        // .style('stroke', function(d) {
-        //     var col = d3.rgb(colorScale(d.comparative));
-        //     return col.darker();
-        // })
-        .classed('defaultCircle',true)
-        .classed('people', true)
-        .call(force.drag)
-        .on('click', showText)
-        .on('mouseover', showCommentCount)
-        .on('mouseout', hideCommentCount);
+        .classed('off', function(d) {
+            return !d.label;
+        })  
+        .attr('dy', '.3em')
+        .style('text-anchor', 'middle');
+
     nodesEl.exit().remove();
+
+    // nodesEl = nodesEl.data(force.nodes());
+    // nodesEl
+    //     .data(force.nodes())
+    //     .enter()
+    //     .append('g')
+    //     .classed('defaultCircle',true)
+    //     .classed('node', true)
+    //     .classed('label', function(d) {
+    //         if (d.label) {
+    //             console.log('foo');
+    //             return true;
+    //         }
+    //         else {
+    //             return false;
+    //         }
+    //     })
+    //     .append('circle')
+    //     .attr('r', function(d) {
+    //         if(d.label) {
+    //             //based the size on the number of letters
+    //             return d.len * 10;
+    //         }
+    //         var sz = radiusScale(d.likes);
+    //         return sz;
+    //         // return radiusScale((d.comments + d.likes));
+    //     })
+    //     .style('fill', function(d,i) {
+    //         var s = colorScale(parseInt(d.comparative,10));
+    //         //console.log(d.comparative,s);
+    //         if(d.label === true) {
+    //             return 'rgba(0,0,0,0)';
+    //         }
+    //         return colorScale(d.comparative);
+    //     })
+    //     .call(force.drag)
+    //     .on('click', showText);
+
+    //     d3.select('.label')
+    //         .append('text')
+    //         .text(function(d){
+    //             console.log('bar');
+    //             return d.name;
+    //         })
+    //         .attr('dy', '.3em')
+    //         .style('text-anchor', 'middle');
+    
+    // nodesEl.exit().remove();
     force.start();
 }
 
 function updateData() {
+    
     //extract value from filter list
     currentFilters = [];
     $('.filterList p').each(function(i){
@@ -481,6 +528,7 @@ function updateData() {
                 name: sub
             };
             currentFilters.push(tempFilter);
+            //nodesData.push({focus: 1, len: sub.length, label: true, name: sub});
     });
 
     if(currentFilters.length > 0) {
@@ -502,8 +550,9 @@ function updateData() {
             o.focus = 1;
         });
     }
+    updateLabels();
     updateNodes();
-    force.resume();
+    start();
 }
 
 function updateNodes(compare) {
@@ -543,20 +592,20 @@ function compareAll(sibs, categoryName) {
         sibs.each(function() {
             var txtVal = $(this).text().toLowerCase();
             filterValues.push(txtVal);
+                       
         });
-
+        compareLabels(filterValues);
         nodesData.forEach(function(o,i) {
             for(var a = 0; a < filterValues.length; a++) {
-                ///console.log(o[categoryName], filterValues[a]);
+                //console.log(o[categoryName], filterValues[a]);
                 if(o[categoryName] === filterValues[a]) {
                     o.focus = (a + 1);
-                    //console.log(o.focus, foci);
                     continue;
                 }
             }
         });
 
-        createLabels(filterValues);
+        //createLabels(filterValues);
         updateNodes(true);
         force.resume();
 
@@ -573,28 +622,32 @@ function selectFilter(selection) {
     var padre = $(selection).parentsUntil('.filters'),
             curDrop = $(padre[2]).children(),
             index = $(padre[2]).index('.wrapper-dropdown'),
-            text = '{' + $(selection).text() + '}',
+            text = $(selection).text();
+            displayText = '{' + text + '}',
             catName = $(curDrop[0]).text().toLowerCase(),
             compare = false,
-            html = null;
+            html = null,
+            sibs = null;
 
         //check if the filter exists from that category already, if so, replace
         var found = false;
         
         //if (compare all), remove all filters
-        if($(selection).text() === 'Compare All') {
+        if(text === 'Compare All') {
             compare = true;
             removeAllFilters();
-            var par = $(selection).parent(),
-                sibs = par.siblings(),
-                numSibs = sibs.length;
+            var par = $(selection).parent();
+            sibs = par.siblings();
+            var numSibs = sibs.length;
+            
+            
+
 
             foci = numSibs;
-            compareAll(sibs, catName);
-            html = '<p data-compare="-1" data-padre=' + index +'>' + text + '</p>';
+            html = '<p data-compare="-1" data-padre=' + index +'>' + displayText + '</p>';
         }
         else {
-            html = '<p data-compare="0" data-padre=' + index +'>' + text + '</p>';
+            html = '<p data-compare="0" data-padre=' + index +'>' + displayText + '</p>';
         }
 
         //if there is a compare all, we should remove it
@@ -604,17 +657,18 @@ function selectFilter(selection) {
             var old = parseInt($(this).attr('data-padre'),10),
                 isCompare = parseInt($(this).attr('data-compare'), 10);
 
-            if(old === index) {
-                $(this).text(text);
-                found = true;
-                return true;
-            }
-            //this means there WAS a compare all, but now we will remove it
             if(isCompare === -1) {
                 $(this).remove();
                 var thisIndex = $(this).attr('data-padre'),
                     el = $('.wrapper-dropdown').get(thisIndex);
                 $(el).children().removeClass('activeFilter');
+            }
+
+            //replace the text if it is the same category AND not a compare all
+            else if(old === index) {
+                $(this).text(displayText);
+                found = true;
+                return true;
             }
         });
 
@@ -627,19 +681,21 @@ function selectFilter(selection) {
             //delete filter on click
             $('.filterList p').bind('click', function() {
                 removeLabels();
+                $(this).remove();
                 //change color of dropdown menu
                 var index = $(this).attr('data-padre'),
                     el = $('.wrapper-dropdown').get(index);
                 $(el).children().removeClass('activeFilter');
-
-                //remove from filter list
-                $(this).remove();
                 updateData();
+                //remove from filter list
+                
             });
         }
-
         if(!compare) {
             updateData();
+        }
+        else {
+            compareAll(sibs, catName);
         }
 }
 
@@ -658,7 +714,7 @@ function createLabels(titles) {
         var cur = $('.compareLabels p').get(i),
             x = Math.floor((i + 1) / (foci + 1) * 100),
             perc = x + '%';
-            console.log(perc);
+            // console.log(perc);
             // off = $(cur).width() / 2;
         // console.log(off);
         $(cur).css('left', perc);
@@ -667,4 +723,47 @@ function createLabels(titles) {
 }
 function removeLabels() {
     $('.compareLabels').empty();
+}
+
+function compareLabels(filters) {
+    nodesData = nodesData.filter(isLabel);
+
+    console.log(filters);
+    for(var i = 0; i < filters.length; i++) {
+        nodesData.push({focus: i, len: filters[i].length / 2, label: true, name: filters[i], user: filters[i], x: centerX, y: centerY});   
+    }
+    force.nodes(nodesData);
+    recharge();
+}
+function updateLabels() {
+
+    //called when it deleted filter or update in filter (NOT Compare)
+    //delete all label nodes
+    
+    
+    nodesData = nodesData.filter(isLabel);
+
+    for(var i = 0; i < currentFilters.length; i++) {
+        nodesData.push({focus: 1, len: currentFilters[i].name.length / 2, label: true, name: currentFilters[i].name, user: currentFilters[i].category, x: centerX, y: centerY});
+    }
+
+    force.nodes(nodesData);
+    recharge();
+}
+    
+function isLabel(element, index, array) {
+    return (element.label !== true);
+}
+function recharge() {
+    force.charge(function(d){
+        // var sz = radiusScale((d.comments + d.likes));
+        if(d.label) {
+            var sz1 = radiusScale(d.len);
+            return -Math.pow(sz1, 2.0);
+        }
+        var sz2 = radiusScale(d.likes);
+        return -Math.pow(sz2, 2.0) / 2.0;
+    })
+    .friction([0.9])
+    .gravity([-0.01]);
 }

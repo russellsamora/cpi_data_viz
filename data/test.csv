@@ -1,8 +1,1 @@
-Name,Age,Gender,Race,Comment
-Russell,26,male,white,I am awesome
-Steve,24,male,alaskan,I am just steve 
-Jesse,27,female,white,I like dinosaurs a lot
-Sam,30,male,asian,Let's all go play video games
-Aidan,25,female,white,I want to draw stuff
-Jedd,35,male,african,I am new
-Eric,40,male,asian,I just got new glasses
+user,challenge,response,comments,age0,0,I am awesome,"great stuff, wonderful",150,1,I am just steve ,love you,150,2,I like dinosaurs a lot,awesome,150,3,Let's all go play video games,meh,151,0,I want to draw stuff,,201,1,I am new,bad,202,0,I just got new glasses,"crazy, awesome",202,1,Fuck butternuts,,202,2,Great stuff then,no comment,202,3,I love lamp,up yours,202,4,No one is better than me,,20
