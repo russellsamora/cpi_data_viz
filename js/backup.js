@@ -39,7 +39,8 @@ var currentInfo = null,
     radiusScale = null,
     minRadius = 8,
     maxMaxRadius = 40,
-    resizeTimer = null;
+    resizeTimer = null,
+    challenges = [];
 
 $(function() {
     //create selector vars
@@ -77,20 +78,22 @@ $(function() {
     //click off dropdown
     vizContainer.click(function() {
         dropdown.removeClass('active');
-        if($('.challengeInfo').is('.challengeDropdown')) {
+        if(challengeInfo.is('.challengeDropdown')) {
             $('.downButton').toggleClass('rotateNinety');
-            $('.challengeInfo').toggleClass('challengeDropdown');
+            challengeInfo.toggleClass('challengeDropdown');
             $('.challengeInfo ul').fadeToggle(100);
         }
     });
-
+    $('.wrapper').click(function() {
+        dropdown.removeClass('active');
+        
+    });
     //help button
     $('.helpButton').bind('click', function() {
         $('.helpArea').fadeIn();
     });
     $('.helpArea').bind('click', function() {
         $('.helpArea').fadeOut();
-        specialSauce();
     });
 
     //close response box
@@ -109,7 +112,7 @@ $(function() {
         clearTimeout(messageTimeout);
         userMessage.fadeOut();
         $('.downButton').toggleClass('rotateNinety');
-        $('.challengeInfo').toggleClass('challengeDropdown');
+        challengeInfo.toggleClass('challengeDropdown');
         $('.challengeInfo ul').fadeToggle(100);
     });
 
@@ -169,21 +172,36 @@ $(function() {
         resize(false);
     });
 
+    //handle challenge selection
+    $('.selectLink').bind('click', function(e) {
+        e.preventDefault();
+        var num = $(this).attr('data-num');
+        $('.downButton').toggleClass('rotateNinety');
+        challengeInfo.toggleClass('challengeDropdown');
+        $('.challengeInfo ul').fadeToggle(100);
+        changeChallenge(num);
+        return false;
+    });
     //begin
     init();
     
 });
 
 function resize(first) {
+    //get the dimensions of the browser
     width = $(window).width();
     height = $(window).height();
+
+    //make sure our comments popup changes to stay within the bounds of the browser
     $('.allComments').css('max-height', height - 300);
-    viz.attr('width', width-1).attr('height', height-4);
-    wrapper.css('height', height-1);
+    //adjust sizes of viz and wrapper
     
+    viz.attr('width', width-1).attr('height', height - 118);
+    wrapper.css('height', height-118);
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) + 60;
+    centerY = Math.floor(height / 2) - 50;
     
+    //if its not our first time (not on init), then we stop the motion, and do our resize timer
     if(!first) {
         force.alpha(0);
         clearTimeout(resizeTimer);
@@ -192,18 +210,21 @@ function resize(first) {
 }
 
 function resizeEnd() {
-    //change size and positions of circles
+    
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) + 60;
+    centerY = Math.floor(height / 2) - 50;
+    
+    //reset the scales accordingly for cirlce sizes
     setScales();
-    nodesEl
-        .attr('r', function(d) {
+    
+    //change size and positions of circles
+    viz.selectAll('circle')
+        .attr('r', function(d,i) {
             var sz = radiusScale(d.likes);
             return sz;
-            // return radiusScale((d.comments + d.likes));
         });
+    //start up the movement again
     force.start();
-
 }
 
 function createPreloader() {
@@ -286,6 +307,7 @@ function init() {
         bigData = csv;
         
         refineData();
+        populateChallenges();
     })
     .on('progress', function(event){
     //update progress bar
@@ -353,11 +375,16 @@ function refineData() {
     setScales();
 
     nodesData = bigData;
-
-    //add the filter label bubble
-    //nodesData.push({focus: 1, len: 3, label: true, name: 'all'});
-
 }
+
+function populateChallenges() {
+    challenges.push({
+        mission: 1,
+        title: 'Awesome Stuff',
+        question: 'Where in the world is Carmen San Diego?  Why do you think she is there?'
+    });
+}
+
 function setupForce() {
     force = d3.layout.force()
                 .nodes(nodesData)
@@ -384,12 +411,6 @@ function moveToCenter(alph) {
         var targetX = Math.floor((d.focus / (foci+1)) * width);
         d.x = d.x + (targetX - d.x) * (0.12) * alph;
         d.y = d.y + (centerY - d.y) * (0.12) * alph;
-        // if(d.special === true) {
-        //     $('.inTheBubble').css({
-        //         left: d.x - 13,
-        //         top: d.y - 10
-        //     });
-        // }
     };
 }
 
@@ -402,24 +423,15 @@ function hideText(d) {
 }
 
 function start(filter) {
-    
-    //nodes = node.data(force.nodes(), function(d) { return d.id;});
-    //nodes.enter().append('circle').attr('class', function(d) { return 'node ' + d.id; }).attr('r', 8);
-    //node.exit().remove();
-    
     //join
-    // console.log(force.nodes());
     nodesEl = nodesEl.data(force.nodes(), function(d) {
         return d.user;
     });
-
-    //update
 
     //enter
     var g = nodesEl.enter().append('g')
         .classed('node', true)
         .classed('label', function(d) {
-            console.log(d);
             if(d.label) {
                 return true;
             }
@@ -443,7 +455,9 @@ function start(filter) {
                 return 'rgba(0,0,0,0)';
             }
             return colorScale(d.comparative);
-        });
+        })
+        .call(force.drag)
+        .on('click', showText);
 
     g.append('text')
         .text(function(d) {
@@ -454,59 +468,11 @@ function start(filter) {
         })
         .classed('off', function(d) {
             return !d.label;
-        })  
+        })
         .attr('dy', '.3em')
         .style('text-anchor', 'middle');
 
     nodesEl.exit().remove();
-
-    // nodesEl = nodesEl.data(force.nodes());
-    // nodesEl
-    //     .data(force.nodes())
-    //     .enter()
-    //     .append('g')
-    //     .classed('defaultCircle',true)
-    //     .classed('node', true)
-    //     .classed('label', function(d) {
-    //         if (d.label) {
-    //             console.log('foo');
-    //             return true;
-    //         }
-    //         else {
-    //             return false;
-    //         }
-    //     })
-    //     .append('circle')
-    //     .attr('r', function(d) {
-    //         if(d.label) {
-    //             //based the size on the number of letters
-    //             return d.len * 10;
-    //         }
-    //         var sz = radiusScale(d.likes);
-    //         return sz;
-    //         // return radiusScale((d.comments + d.likes));
-    //     })
-    //     .style('fill', function(d,i) {
-    //         var s = colorScale(parseInt(d.comparative,10));
-    //         //console.log(d.comparative,s);
-    //         if(d.label === true) {
-    //             return 'rgba(0,0,0,0)';
-    //         }
-    //         return colorScale(d.comparative);
-    //     })
-    //     .call(force.drag)
-    //     .on('click', showText);
-
-    //     d3.select('.label')
-    //         .append('text')
-    //         .text(function(d){
-    //             console.log('bar');
-    //             return d.name;
-    //         })
-    //         .attr('dy', '.3em')
-    //         .style('text-anchor', 'middle');
-    
-    // nodesEl.exit().remove();
     force.start();
 }
 
@@ -561,14 +527,16 @@ function updateNodes(compare) {
             return false;
         }
         else {
+            if(d.label) {
+                return false;
+            }
             if(d.focus === 2) {
                 return true;
             }
             else {
                 return false;
             }
-        }
-        
+        }      
     });
 }
 
@@ -605,19 +573,13 @@ function compareAll(sibs, categoryName) {
             }
         });
 
-        //createLabels(filterValues);
         updateNodes(true);
         force.resume();
 
 }
 
-function removeAllFilters() {
-    dropdown.children().removeClass('activeFilter');
-    $('.filterList p').remove();
-    removeLabels();
-
-}
-
+//when a filter is selected, we must figure out a lot of things,
+//like what were the filters before, what should they be, etc.
 function selectFilter(selection) {
     var padre = $(selection).parentsUntil('.filters'),
             curDrop = $(padre[2]).children(),
@@ -680,15 +642,12 @@ function selectFilter(selection) {
 
             //delete filter on click
             $('.filterList p').bind('click', function() {
-                removeLabels();
                 $(this).remove();
                 //change color of dropdown menu
                 var index = $(this).attr('data-padre'),
                     el = $('.wrapper-dropdown').get(index);
                 $(el).children().removeClass('activeFilter');
                 updateData();
-                //remove from filter list
-                
             });
         }
         if(!compare) {
@@ -699,54 +658,42 @@ function selectFilter(selection) {
         }
 }
 
-function showCommentCount(d) {
-    //move a text item to be on top current circle
-}
-function hideCommentCount(d) {
-
-}
-function createLabels(titles) {
-    //create a label for each category
-    for(var i = 0; i < titles.length; i++) {
-        var newLabel = '<p>' + titles[i] + '</p>';
-        $('.compareLabels').append(newLabel);
-        //position it
-        var cur = $('.compareLabels p').get(i),
-            x = Math.floor((i + 1) / (foci + 1) * 100),
-            perc = x + '%';
-            // console.log(perc);
-            // off = $(cur).width() / 2;
-        // console.log(off);
-        $(cur).css('left', perc);
-    }
-
-}
-function removeLabels() {
-    $('.compareLabels').empty();
+//remove the labels from the bottom
+function removeAllFilters() {
+    dropdown.children().removeClass('activeFilter');
+    $('.filterList p').remove();
 }
 
+//update the labels for the compare all feature
 function compareLabels(filters) {
+    //delete all labels
     nodesData = nodesData.filter(isLabel);
-
-    console.log(filters);
+    
+    //add new ones
     for(var i = 0; i < filters.length; i++) {
-        nodesData.push({focus: i, len: filters[i].length / 2, label: true, name: filters[i], user: filters[i], x: centerX, y: centerY});   
+        var realFocus = i + 1,
+            startX = (realFocus / foci) * width;
+        nodesData.push({focus: realFocus, len: filters[i].length / 2, label: true, name: filters[i], user: filters[i], x: startX, y: centerY});
     }
     force.nodes(nodesData);
+    //must call start here since we aren't joining the new data anywhere else
+    start();
     recharge();
 }
+
+//update the labels when we are not comparing all
 function updateLabels() {
-
-    //called when it deleted filter or update in filter (NOT Compare)
     //delete all label nodes
-    
-    
     nodesData = nodesData.filter(isLabel);
+    var len = currentFilters.length,
+        mid =  len / 2;
 
-    for(var i = 0; i < currentFilters.length; i++) {
-        nodesData.push({focus: 1, len: currentFilters[i].name.length / 2, label: true, name: currentFilters[i].name, user: currentFilters[i].category, x: centerX, y: centerY});
+    //go thru and push all the new ones
+    for(var i = 0; i < len; i++) {
+        var startY = (height/2) - (((i - mid) / len) * height * 0.5),
+            startX = len > 1 ? (width * 0.33) : centerX;
+        nodesData.push({focus: 1, len: currentFilters[i].name.length / 2, label: true, name: currentFilters[i].name, user: currentFilters[i].category, x: startX, y: startY});
     }
-
     force.nodes(nodesData);
     recharge();
 }
@@ -756,7 +703,6 @@ function isLabel(element, index, array) {
 }
 function recharge() {
     force.charge(function(d){
-        // var sz = radiusScale((d.comments + d.likes));
         if(d.label) {
             var sz1 = radiusScale(d.len);
             return -Math.pow(sz1, 2.0);
@@ -766,4 +712,9 @@ function recharge() {
     })
     .friction([0.9])
     .gravity([-0.01]);
+}
+
+function changeChallenge(cur) {
+    $('.selectChallenge').text('Challenge: ' + challenges[cur].title);
+    $('.challengeQuestion').text(challenges[cur].question);
 }

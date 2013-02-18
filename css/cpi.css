@@ -10,6 +10,9 @@ body{
     font-family: "default-gothic",sans-serif;
     color: #222;
 }
+nav {
+    z-index: 9999;
+}
 a{
     text-decoration: none;
     font-family: Georgia, serif;
@@ -20,9 +23,10 @@ h1,h2,h3 {
 }
 .vizContainer {
     position: absolute;
-    top: 0;
+    top: 114px;
     left: 0;
     width: 100%;
+    z-index: 0;
 }
 .navigation {
     background: #EA446A;
@@ -30,14 +34,12 @@ h1,h2,h3 {
     width: 100%;
     min-width: 640px;
     height: 38px;
-    position: absolute;
-    z-index: 51;
-    top:0;
-    left:0;
-    /*border-bottom: 2px solid #ccc;*/
-    -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
-    -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
-    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    z-index: 52;
+    border-bottom: 2px solid #555;
+    border-bottom: 2px solid rgba(0,0,0,.3);
+    /*-moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    -webkit-box-shadow: 0 2px 2px 2px rgba(0,0,0,.5);
+    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);*/
 }
 .navigation ul {
     margin: 0 auto;
@@ -54,12 +56,13 @@ h1,h2,h3 {
     float: right;
 }
 .wrapper {
-    position: absolute;
+    /*position: absolute;
     top: 0;
-    left: 0;
+    left: 0;*/
     width: 100%;
     min-width: 1024px;
     min-height: 600px;
+    z-index: -1;
 }
 .intro {
     width: 480px;
@@ -77,17 +80,41 @@ h1,h2,h3 {
 
 /* DEMO 2 */
 .filters {
-    position: absolute;
-    top: 38px;
+    /*position: absolute;
+    top: 38px;*/
     width: 100%;
     min-width: 1024px;
-    height: 37px;
-    background: #7FA764;
-    /*background: #aaa;*/
+    height: 38px;
+    /*background: #4EA3BE;*/
+    background: #aaa;
+    /*background: #1884A8;
+    background: #ADCC8C;*/
     z-index: 50;
-    -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    /*-moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
     -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
-    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);*/
+    border-bottom: 2px solid #555;
+    border-bottom: 2px solid rgba(0,0,0,.3);
+}
+.challengeInfo {
+    height: 38px;
+    overflow: hidden;
+    width: 100%;
+    min-width: 1024px;
+    position: relative;
+    /*background: #1884A8;*/
+    background: #81A965;
+    /*background: #555;*/
+    color: #fff;
+    z-index: 51;
+    /*-moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
+    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);*/
+    border-bottom: 2px solid #555;
+    border-bottom: 2px solid rgba(0,0,0,.3);
+    transition: all .2s;
+    -webkit-transition: all .2s;
+    -moz-transition: all .2s;
 }
 .wrapper-dropdown {
     /* Size and position */
@@ -97,11 +124,12 @@ h1,h2,h3 {
     /*margin: 0 20px;*/
     float: left;
     /* Styles */
-    background: #333;
+    background: #555;
     color: #fff;
     border-left: 5px solid #ccc;
     cursor: pointer;
     outline: none;
+    z-index: 999;
 }
 .wrapper-search {
     position: relative; /* Enable absolute positionning for children and pseudo elements */
@@ -110,7 +138,7 @@ h1,h2,h3 {
     /*margin: 0 20px;*/
     float: left;
     /* Styles */
-    background: #333;
+    background: #555;
     color: #fff;
     border-left: 5px solid #ccc;
     outline: none;
@@ -174,7 +202,7 @@ input[type=text] {
     right: 0px;
 
     /* Styles */
-    background: #333;
+    background: #555;
     -webkit-transition: all 0.3s;
     -moz-transition: all 0.3s;
     -ms-transition: all 0.3s;
@@ -210,7 +238,7 @@ input[type=text] {
 /* Hover state */
 
 .wrapper-dropdown .dropdown li:hover a {
-    background: #555;
+    background: #333;
 }
 
 /* Active state */
@@ -271,33 +299,16 @@ input[type=text] {
     font-size: 1.5em;
 }
 .filters > h2 {
+    color: #fff;
     float: left;
     margin: 5px 10px;
 }
-.challengeInfo {
-    height: 38px;
-    position: absolute;
-    overflow: hidden;
-    top: 75px;
-    /*right: 0;*/
-    width: 100%;
-    min-width: 1024px;
-    background: #1884A8;
-    /*background: #555;*/
-    color: #fff;
-    z-index: 49;
-    -moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
-    -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
-    box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
-    transition: all .2s;
-    -webkit-transition: all .2s;
-    -moz-transition: all .2s;
-}
-.challengeInfo img {
+.challengeLink img {
     float: left;
     padding-top: 2px;
 }
-.challengeInfo h2 {
+.challengeLink h2.selectChallenge {
+    cursor: pointer;
     float: left;
     padding: 5px;
 }
@@ -323,6 +334,9 @@ input[type=text] {
 .challengeInfo ul li {
     padding: 5px;
     width: 200px;
+}
+.challengeInfo ul li a {
+    font-family: 'default-gothic', sans-serif;
     font-size: 1.2em;
     cursor: pointer;
 }
@@ -354,7 +368,7 @@ input[type=text] {
     background: rgba(20,20,20,.8);
     color: #eee;
     margin: 0 auto;
-    margin-top: 130px;
+    margin-top: 30px;
 }
 .displayInfo p {
     padding: 10px;
@@ -382,6 +396,8 @@ input[type=text] {
     right: 0;
 }
 .challengeLink {
+    width: 100%;
+    height: 38px;
     cursor: pointer;
 }
 h2.currentViz {
@@ -459,4 +475,11 @@ h2.currentViz {
 }
 .off {
     display: none;
+}
+.challengeQuestion {
+    color: #222;
+    width: 640px;
+    position: absolute;
+    top: 130px;
+    left: 30px; 
 }
