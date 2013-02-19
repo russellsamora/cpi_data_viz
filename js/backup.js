@@ -415,11 +415,56 @@ function moveToCenter(alph) {
 }
 
 function showText(d) {
+    if(d.label) {
+        deleteLabel(d);
+        return;
+    }
     $('.displayInfo .mainResponse').text(d.response);
     $('.displayInfo').show();
 }
 function hideText(d) {
     $('.displayInfo').hide();
+}
+function deleteLabel(d) {
+    
+    if(compare) {
+        $('.filterList p').each(function(i){
+            this.remove();
+            compare = false;
+        });
+        $('.wrapper-dropdown span').removeClass('activeFilter');
+    }
+    else {
+       var filterName = '{' + d.name + '}';
+
+        //remove the node
+        for(var i = 0; i < nodesData.length; i++) {
+            if(nodesData[i].name === d.name) {
+                nodesData.splice(i,1);
+                continue;
+            }
+        }
+
+        //remove from currentFilters
+        $('.filterList p').each(function(i){
+            var text = $(this).text().toLowerCase();
+
+            if(text === filterName) {
+                var thisIndex = $(this).attr('data-padre'),
+                    el = $('.wrapper-dropdown').get(thisIndex);
+                
+                $(el).children().removeClass('activeFilter');
+                this.remove();
+
+            }
+        });
+    }
+    
+    //update data
+    updateData();
+    //reset dropdown
+    // start();
+
 }
 
 function start(filter) {
@@ -469,6 +514,9 @@ function start(filter) {
         .classed('off', function(d) {
             return !d.label;
         })
+        .on('click', deleteLabel)
+        .on('mouseover', highlightText)
+        .on('mouseout', regularText)
         .attr('dy', '.3em')
         .style('text-anchor', 'middle');
 
@@ -686,11 +734,13 @@ function updateLabels() {
     //delete all label nodes
     nodesData = nodesData.filter(isLabel);
     var len = currentFilters.length,
-        mid =  len / 2;
+        interval = 60,
+        topStart = centerY - ((interval * len) / 2);
+
 
     //go thru and push all the new ones
     for(var i = 0; i < len; i++) {
-        var startY = (height/2) - (((i - mid) / len) * height * 0.5),
+        var startY = topStart + interval * i,
             startX = len > 1 ? (width * 0.33) : centerX;
         nodesData.push({focus: 1, len: currentFilters[i].name.length / 2, label: true, name: currentFilters[i].name, user: currentFilters[i].category, x: startX, y: startY});
     }
@@ -717,4 +767,27 @@ function recharge() {
 function changeChallenge(cur) {
     $('.selectChallenge').text('Challenge: ' + challenges[cur].title);
     $('.challengeQuestion').text(challenges[cur].question);
+}
+
+function keyword(input) {
+    results = [],
+    split = input.replace(/[^a-zA-Z ]+/g, '')
+            .replace('/ {2,}/',' ')
+            .toLowerCase()
+            .split(' ');
+
+    for(var i =0; i< split.length; i++) {
+        if(split[i].length > 1) {
+            results.push(split[i]);
+        }
+    }
+    return results;
+}
+
+function highlightText(d) {
+    d3.select(this).style('fill', '#EA446A');
+}
+
+function regularText(d) {
+    d3.select(this).style('fill', '#000');
 }

@@ -20,6 +20,7 @@ a{
 }
 h1,h2,h3 {
   font-family: "vinyl",sans-serif;
+  font-weight: 100;
 }
 .vizContainer {
     position: absolute;
@@ -143,6 +144,7 @@ h1,h2,h3 {
     border-left: 5px solid #ccc;
     outline: none;
     height: 37px;
+    z-index: 999;
 }
 
 .submitSearch {
@@ -361,6 +363,10 @@ input[type=text] {
 .displayInfo {
     display: none;
     position: relative;
+}
+.displayInfo .box {
+    position: relative;
+    top: 30px;
     border-radius: 5px;
     width: 640px;
     padding: 10px;
@@ -368,7 +374,6 @@ input[type=text] {
     background: rgba(20,20,20,.8);
     color: #eee;
     margin: 0 auto;
-    margin-top: 30px;
 }
 .displayInfo p {
     padding: 10px;
@@ -482,4 +487,10 @@ h2.currentViz {
     position: absolute;
     top: 130px;
     left: 30px; 
+}
+.label {
+    cursor: pointer;
+}
+.label:hover {
+    cursor:url(../img/remove.png) 16 16,default;
 }
