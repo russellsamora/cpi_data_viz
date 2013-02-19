@@ -388,12 +388,11 @@ function setPropertiesFromData() {
 
 function loadUsersAndChallenges() {
     d3.csv('../data/users.csv',function(csv_users) {
-        users = csv_users;
         users = d3.nest()
         .key(function(d) {
             return d.user_id;
         })
-        .map(users);
+        .map(csv_users);
         d3.csv('../data/challenges.csv',function(csv_challenges) {
             challenges = csv_challenges;
             ready = true;
