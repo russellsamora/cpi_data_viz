@@ -27,7 +27,7 @@ var currentInfo = null,
     topBar = 112,
     bigData = null,
     showingComments = false,
-    nodesData = [],
+    nodesData = null,
     nodesEl = null,
     force = null,
     foci = 1,
@@ -39,8 +39,7 @@ var currentInfo = null,
     radiusScale = null,
     minRadius = 8,
     maxMaxRadius = 40,
-    resizeTimer = null,
-    challenges = [];
+    resizeTimer = null;
 
 $(function() {
     //create selector vars
@@ -78,22 +77,20 @@ $(function() {
     //click off dropdown
     vizContainer.click(function() {
         dropdown.removeClass('active');
-        if(challengeInfo.is('.challengeDropdown')) {
+        if($('.challengeInfo').is('.challengeDropdown')) {
             $('.downButton').toggleClass('rotateNinety');
-            challengeInfo.toggleClass('challengeDropdown');
+            $('.challengeInfo').toggleClass('challengeDropdown');
             $('.challengeInfo ul').fadeToggle(100);
         }
     });
-    $('.wrapper').click(function() {
-        dropdown.removeClass('active');
-        
-    });
+
     //help button
     $('.helpButton').bind('click', function() {
         $('.helpArea').fadeIn();
     });
     $('.helpArea').bind('click', function() {
         $('.helpArea').fadeOut();
+        specialSauce();
     });
 
     //close response box
@@ -112,7 +109,7 @@ $(function() {
         clearTimeout(messageTimeout);
         userMessage.fadeOut();
         $('.downButton').toggleClass('rotateNinety');
-        challengeInfo.toggleClass('challengeDropdown');
+        $('.challengeInfo').toggleClass('challengeDropdown');
         $('.challengeInfo ul').fadeToggle(100);
     });
 
@@ -172,36 +169,21 @@ $(function() {
         resize(false);
     });
 
-    //handle challenge selection
-    $('.selectLink').bind('click', function(e) {
-        e.preventDefault();
-        var num = $(this).attr('data-num');
-        $('.downButton').toggleClass('rotateNinety');
-        challengeInfo.toggleClass('challengeDropdown');
-        $('.challengeInfo ul').fadeToggle(100);
-        changeChallenge(num);
-        return false;
-    });
     //begin
     init();
     
 });
 
 function resize(first) {
-    //get the dimensions of the browser
     width = $(window).width();
     height = $(window).height();
-
-    //make sure our comments popup changes to stay within the bounds of the browser
     $('.allComments').css('max-height', height - 300);
-    //adjust sizes of viz and wrapper
+    viz.attr('width', width-1).attr('height', height-4);
+    wrapper.css('height', height-1);
     
-    viz.attr('width', width-1).attr('height', height - 118);
-    wrapper.css('height', height-118);
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) - 50;
+    centerY = Math.floor(height / 2) + 60;
     
-    //if its not our first time (not on init), then we stop the motion, and do our resize timer
     if(!first) {
         force.alpha(0);
         clearTimeout(resizeTimer);
@@ -210,21 +192,18 @@ function resize(first) {
 }
 
 function resizeEnd() {
-    
-    centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) - 50;
-    
-    //reset the scales accordingly for cirlce sizes
-    setScales();
-    
     //change size and positions of circles
-    viz.selectAll('circle')
-        .attr('r', function(d,i) {
+    centerX = Math.floor(width / 2);
+    centerY = Math.floor(height / 2) + 60;
+    setScales();
+    nodesEl
+        .attr('r', function(d) {
             var sz = radiusScale(d.likes);
             return sz;
+            // return radiusScale((d.comments + d.likes));
         });
-    //start up the movement again
     force.start();
+
 }
 
 function createPreloader() {
@@ -290,7 +269,7 @@ function init() {
     
     viz = d3.select('.vizContainer').append('svg');
     nodesData = [];
-    nodesEl = viz.selectAll('.node');
+    nodesEl = viz.selectAll('.people');
     resize(true);
     createPreloader();
     
@@ -307,7 +286,6 @@ function init() {
         bigData = csv;
         
         refineData();
-        populateChallenges();
     })
     .on('progress', function(event){
     //update progress bar
@@ -372,36 +350,67 @@ function refineData() {
         return num;
     });
 
+    // console.log(maxPopular, maxLikes, maxComments);
     setScales();
 
     nodesData = bigData;
-}
+    //nodesData = nodesData;
 
-function populateChallenges() {
-    challenges.push({
-        mission: 1,
-        title: 'Awesome Stuff',
-        question: 'Where in the world is Carmen San Diego?  Why do you think she is there?'
-    });
 }
-
 function setupForce() {
     force = d3.layout.force()
                 .nodes(nodesData)
                 .size([width,height])
+                .charge(function(d){
+                    // var sz = radiusScale((d.comments + d.likes));
+                    var sz = radiusScale(d.likes);
+                    return -Math.pow(sz, 2.0) / 4.0;
+                })
+                .friction([0.9])
+                .gravity([-0.01])
                 .on('tick', function(e) {
-                    nodesEl.select('circle').each(moveToCenter(e.alpha))
+                    nodesEl.each(moveToCenter(e.alpha))
                         .attr('cx', function(d) { return d.x; })
                         .attr('cy', function(d) { return d.y; });
-                    nodesEl.attr("cx", function(d) { return d.x; })
-                        .attr("cy", function(d) { return d.y; });
-                    nodesEl.select('text').each(moveToCenter(e.alpha))
-                        .attr('x', function(d) { return d.x; })
-                        .attr('y', function(d) { return d.y; });
-                    nodesEl.attr("x", function(d) { return d.x; })
-                        .attr("y", function(d) { return d.y; });
                 });
-    recharge();
+
+              // nodes = viz.selectAll('circle')
+              //           .data(nodesData)
+              //           .enter()
+              //           .append('circle')
+              //           .attr('r', function(d) {
+              //               var sz = radiusScale(d.likes);
+              //               return sz;
+              //               // return radiusScale((d.comments + d.likes));
+              //           })
+              //           .style('fill', function(d) {
+                            
+              //               var s = colorScale(parseInt(d.comparative,10));
+              //               //console.log(d.comparative,s);
+              //               return colorScale(d.comparative);
+              //           })
+              //           // .style('stroke', function(d) {
+              //           //     var col = d3.rgb(colorScale(d.comparative));
+              //           //     return col.darker();
+              //           // })
+              //           .classed('defaultCircle',true)
+              //           .call(force.drag)
+              //           .on('click', showText);
+
+                // viz.selectAll('text')
+                //     .data(nodesData)
+                //     .enter()
+                //     .append('text')
+                //     .text(function(d) {
+                //         return d.comments;
+                //    })
+                //    .attr('font-family', 'sans-serif')
+                //    .attr('font-size', '11px')
+                //    .attr('fill', 'white');
+            // force.on('tick', function() {
+            //     nodes.attr('cx', function(d) { return d.x; })
+            //         .attr('cy', function(d) { return d.y; });
+            // });
     start();
 }
 
@@ -415,80 +424,23 @@ function moveToCenter(alph) {
 }
 
 function showText(d) {
-    if(d.label) {
-        deleteLabel(d);
-        return;
-    }
     $('.displayInfo .mainResponse').text(d.response);
     $('.displayInfo').show();
 }
 function hideText(d) {
     $('.displayInfo').hide();
 }
-function deleteLabel(d) {
+
+function start() {
     
-    if(compare) {
-        $('.filterList p').each(function(i){
-            this.remove();
-            compare = false;
-        });
-        $('.wrapper-dropdown span').removeClass('activeFilter');
-    }
-    else {
-       var filterName = '{' + d.name + '}';
-
-        //remove the node
-        for(var i = 0; i < nodesData.length; i++) {
-            if(nodesData[i].name === d.name) {
-                nodesData.splice(i,1);
-                continue;
-            }
-        }
-
-        //remove from currentFilters
-        $('.filterList p').each(function(i){
-            var text = $(this).text().toLowerCase();
-
-            if(text === filterName) {
-                var thisIndex = $(this).attr('data-padre'),
-                    el = $('.wrapper-dropdown').get(thisIndex);
-                
-                $(el).children().removeClass('activeFilter');
-                this.remove();
-
-            }
-        });
-    }
-    
-    //update data
-    updateData();
-    //reset dropdown
-    // start();
-
-}
-
-function start(filter) {
-    //join
-    nodesEl = nodesEl.data(force.nodes(), function(d) {
-        return d.user;
-    });
-
-    //enter
-    var g = nodesEl.enter().append('g')
-        .classed('node', true)
-        .classed('label', function(d) {
-            if(d.label) {
-                return true;
-            }
-            return false;
-        });
-
-    g.append('circle')
+    //nodes = node.data(force.nodes(), function(d) { return d.id;});
+    //nodes.enter().append('circle').attr('class', function(d) { return 'node ' + d.id; }).attr('r', 8);
+    //node.exit().remove();
+    nodesEl = nodesEl.data(force.nodes());
+    nodesEl
+        .enter()
+        .append('circle')
         .attr('r', function(d) {
-            if(d.label) {
-                //based the size on the number of letters
-                return d.len * 10;
-            }
             var sz = radiusScale(d.likes);
             return sz;
             // return radiusScale((d.comments + d.likes));
@@ -496,36 +448,23 @@ function start(filter) {
         .style('fill', function(d,i) {
             var s = colorScale(parseInt(d.comparative,10));
             //console.log(d.comparative,s);
-            if(d.label === true) {
-                return 'rgba(0,0,0,0)';
-            }
             return colorScale(d.comparative);
         })
+        // .style('stroke', function(d) {
+        //     var col = d3.rgb(colorScale(d.comparative));
+        //     return col.darker();
+        // })
+        .classed('defaultCircle',true)
+        .classed('people', true)
         .call(force.drag)
-        .on('click', showText);
-
-    g.append('text')
-        .text(function(d) {
-            if(d.label) {
-                return d.name;
-            }
-            return '';
-        })
-        .classed('off', function(d) {
-            return !d.label;
-        })
-        .on('click', deleteLabel)
-        .on('mouseover', highlightText)
-        .on('mouseout', regularText)
-        .attr('dy', '.3em')
-        .style('text-anchor', 'middle');
-
+        .on('click', showText)
+        .on('mouseover', showCommentCount)
+        .on('mouseout', hideCommentCount);
     nodesEl.exit().remove();
     force.start();
 }
 
 function updateData() {
-    
     //extract value from filter list
     currentFilters = [];
     $('.filterList p').each(function(i){
@@ -542,7 +481,6 @@ function updateData() {
                 name: sub
             };
             currentFilters.push(tempFilter);
-            //nodesData.push({focus: 1, len: sub.length, label: true, name: sub});
     });
 
     if(currentFilters.length > 0) {
@@ -564,9 +502,8 @@ function updateData() {
             o.focus = 1;
         });
     }
-    updateLabels();
     updateNodes();
-    start();
+    force.resume();
 }
 
 function updateNodes(compare) {
@@ -575,16 +512,14 @@ function updateNodes(compare) {
             return false;
         }
         else {
-            if(d.label) {
-                return false;
-            }
             if(d.focus === 2) {
                 return true;
             }
             else {
                 return false;
             }
-        }      
+        }
+        
     });
 }
 
@@ -608,56 +543,58 @@ function compareAll(sibs, categoryName) {
         sibs.each(function() {
             var txtVal = $(this).text().toLowerCase();
             filterValues.push(txtVal);
-                       
         });
-        compareLabels(filterValues);
+
         nodesData.forEach(function(o,i) {
             for(var a = 0; a < filterValues.length; a++) {
-                //console.log(o[categoryName], filterValues[a]);
+                ///console.log(o[categoryName], filterValues[a]);
                 if(o[categoryName] === filterValues[a]) {
                     o.focus = (a + 1);
+                    //console.log(o.focus, foci);
                     continue;
                 }
             }
         });
 
+        createLabels(filterValues);
         updateNodes(true);
         force.resume();
 
 }
 
-//when a filter is selected, we must figure out a lot of things,
-//like what were the filters before, what should they be, etc.
+function removeAllFilters() {
+    dropdown.children().removeClass('activeFilter');
+    $('.filterList p').remove();
+    removeLabels();
+
+}
+
 function selectFilter(selection) {
     var padre = $(selection).parentsUntil('.filters'),
             curDrop = $(padre[2]).children(),
             index = $(padre[2]).index('.wrapper-dropdown'),
-            text = $(selection).text();
-            displayText = '{' + text + '}',
+            text = '{' + $(selection).text() + '}',
             catName = $(curDrop[0]).text().toLowerCase(),
             compare = false,
-            html = null,
-            sibs = null;
+            html = null;
 
         //check if the filter exists from that category already, if so, replace
         var found = false;
         
         //if (compare all), remove all filters
-        if(text === 'Compare All') {
+        if($(selection).text() === 'Compare All') {
             compare = true;
             removeAllFilters();
-            var par = $(selection).parent();
-            sibs = par.siblings();
-            var numSibs = sibs.length;
-            
-            
-
+            var par = $(selection).parent(),
+                sibs = par.siblings(),
+                numSibs = sibs.length;
 
             foci = numSibs;
-            html = '<p data-compare="-1" data-padre=' + index +'>' + displayText + '</p>';
+            compareAll(sibs, catName);
+            html = '<p data-compare="-1" data-padre=' + index +'>' + text + '</p>';
         }
         else {
-            html = '<p data-compare="0" data-padre=' + index +'>' + displayText + '</p>';
+            html = '<p data-compare="0" data-padre=' + index +'>' + text + '</p>';
         }
 
         //if there is a compare all, we should remove it
@@ -667,18 +604,17 @@ function selectFilter(selection) {
             var old = parseInt($(this).attr('data-padre'),10),
                 isCompare = parseInt($(this).attr('data-compare'), 10);
 
+            if(old === index) {
+                $(this).text(text);
+                found = true;
+                return true;
+            }
+            //this means there WAS a compare all, but now we will remove it
             if(isCompare === -1) {
                 $(this).remove();
                 var thisIndex = $(this).attr('data-padre'),
                     el = $('.wrapper-dropdown').get(thisIndex);
                 $(el).children().removeClass('activeFilter');
-            }
-
-            //replace the text if it is the same category AND not a compare all
-            else if(old === index) {
-                $(this).text(displayText);
-                found = true;
-                return true;
             }
         });
 
@@ -690,104 +626,45 @@ function selectFilter(selection) {
 
             //delete filter on click
             $('.filterList p').bind('click', function() {
-                $(this).remove();
+                removeLabels();
                 //change color of dropdown menu
                 var index = $(this).attr('data-padre'),
                     el = $('.wrapper-dropdown').get(index);
                 $(el).children().removeClass('activeFilter');
+
+                //remove from filter list
+                $(this).remove();
                 updateData();
             });
         }
+
         if(!compare) {
             updateData();
         }
-        else {
-            compareAll(sibs, catName);
-        }
 }
 
-//remove the labels from the bottom
-function removeAllFilters() {
-    dropdown.children().removeClass('activeFilter');
-    $('.filterList p').remove();
+function showCommentCount(d) {
+    //move a text item to be on top current circle
 }
+function hideCommentCount(d) {
 
-//update the labels for the compare all feature
-function compareLabels(filters) {
-    //delete all labels
-    nodesData = nodesData.filter(isLabel);
-    
-    //add new ones
-    for(var i = 0; i < filters.length; i++) {
-        var realFocus = i + 1,
-            startX = (realFocus / foci) * width;
-        nodesData.push({focus: realFocus, len: filters[i].length / 2, label: true, name: filters[i], user: filters[i], x: startX, y: centerY});
+}
+function createLabels(titles) {
+    //create a label for each category
+    for(var i = 0; i < titles.length; i++) {
+        var newLabel = '<p>' + titles[i] + '</p>';
+        $('.compareLabels').append(newLabel);
+        //position it
+        var cur = $('.compareLabels p').get(i),
+            x = Math.floor((i + 1) / (foci + 1) * 100),
+            perc = x + '%';
+            console.log(perc);
+            // off = $(cur).width() / 2;
+        // console.log(off);
+        $(cur).css('left', perc);
     }
-    force.nodes(nodesData);
-    //must call start here since we aren't joining the new data anywhere else
-    start();
-    recharge();
+
 }
-
-//update the labels when we are not comparing all
-function updateLabels() {
-    //delete all label nodes
-    nodesData = nodesData.filter(isLabel);
-    var len = currentFilters.length,
-        interval = 60,
-        topStart = centerY - ((interval * len) / 2);
-
-
-    //go thru and push all the new ones
-    for(var i = 0; i < len; i++) {
-        var startY = topStart + interval * i,
-            startX = len > 1 ? (width * 0.33) : centerX;
-        nodesData.push({focus: 1, len: currentFilters[i].name.length / 2, label: true, name: currentFilters[i].name, user: currentFilters[i].category, x: startX, y: startY});
-    }
-    force.nodes(nodesData);
-    recharge();
-}
-    
-function isLabel(element, index, array) {
-    return (element.label !== true);
-}
-function recharge() {
-    force.charge(function(d){
-        if(d.label) {
-            var sz1 = radiusScale(d.len);
-            return -Math.pow(sz1, 2.0);
-        }
-        var sz2 = radiusScale(d.likes);
-        return -Math.pow(sz2, 2.0) / 2.0;
-    })
-    .friction([0.9])
-    .gravity([-0.01]);
-}
-
-function changeChallenge(cur) {
-    $('.selectChallenge').text('Challenge: ' + challenges[cur].title);
-    $('.challengeQuestion').text(challenges[cur].question);
-}
-
-function keyword(input) {
-    results = [],
-    split = input.replace(/[^a-zA-Z ]+/g, '')
-            .replace('/ {2,}/',' ')
-            .toLowerCase()
-            .split(' ');
-
-    for(var i =0; i< split.length; i++) {
-        if(split[i].length > 1) {
-            results.push(split[i]);
-        }
-    }
-    return results;
-}
-
-function highlightText(d) {
-    d3.select(this).style('fill', '#EA446A');
-}
-
-function regularText(d) {
-    d3.select(this).style('fill', '#000');
+function removeLabels() {
+    $('.compareLabels').empty();
 }

@@ -9,6 +9,7 @@ body{
     background: #fff url(../img/bg-tile.png);
     font-family: "default-gothic",sans-serif;
     color: #222;
+    overflow: hidden;
 }
 nav {
     z-index: 9999;
@@ -23,6 +24,7 @@ h1,h2,h3 {
   font-weight: 100;
 }
 .vizContainer {
+    font-family: 'Inconsolata', monospace;
     position: absolute;
     top: 114px;
     left: 0;
@@ -87,7 +89,7 @@ h1,h2,h3 {
     min-width: 1024px;
     height: 38px;
     /*background: #4EA3BE;*/
-    background: #aaa;
+    background: #888;
     /*background: #1884A8;
     background: #ADCC8C;*/
     z-index: 50;
@@ -301,7 +303,7 @@ input[type=text] {
     font-size: 1.5em;
 }
 .filters > h2 {
-    color: #fff;
+    color: #eee;
     float: left;
     margin: 5px 10px;
 }
@@ -310,6 +312,7 @@ input[type=text] {
     padding-top: 2px;
 }
 .challengeLink h2.selectChallenge {
+    color: rgb(219, 252, 196);
     cursor: pointer;
     float: left;
     padding: 5px;
@@ -354,7 +357,8 @@ input[type=text] {
 }
 .navigation h2 {
     padding: 5px 10px;
-    color: #eee;
+    cursor: default;
+    color: rgb(255, 220, 220);
     float: left;
 }
 .el_grupo {

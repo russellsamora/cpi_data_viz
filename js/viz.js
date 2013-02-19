@@ -26,23 +26,29 @@ var currentInfo = null,
     meter_rate = 0.001,
     topBar = 112,
     bigData = null,
+    nestedData = null,
     showingComments = false,
-    nodesData = null,
+    nodesData = [],
     nodesEl = null,
     force = null,
     foci = 1,
     currentFilters = [],
-    nodesData = null,
+    nodesData = [],
+    challengeData = [],
     maxLikes = 0,
     maxComments = 0,
     maxPopular = 0,
     radiusScale = null,
     minRadius = 8,
     maxMaxRadius = 40,
-    resizeTimer = null;
+    resizeTimer = null,
+    challenges = null,
+    users = null,
+    ready = false;
 
 $(function() {
-    //create selector vars
+
+     //create selector vars
     currentInfo = $('.currentInfo');
     challengeInfo = $('.challengeInfo');
     vizContainer = $('.vizContainer');
@@ -77,20 +83,22 @@ $(function() {
     //click off dropdown
     vizContainer.click(function() {
         dropdown.removeClass('active');
-        if($('.challengeInfo').is('.challengeDropdown')) {
+        if(challengeInfo.is('.challengeDropdown')) {
             $('.downButton').toggleClass('rotateNinety');
-            $('.challengeInfo').toggleClass('challengeDropdown');
+            challengeInfo.toggleClass('challengeDropdown');
             $('.challengeInfo ul').fadeToggle(100);
         }
     });
-
+    $('.wrapper').click(function() {
+        dropdown.removeClass('active');
+        
+    });
     //help button
     $('.helpButton').bind('click', function() {
         $('.helpArea').fadeIn();
     });
     $('.helpArea').bind('click', function() {
         $('.helpArea').fadeOut();
-        specialSauce();
     });
 
     //close response box
@@ -109,7 +117,7 @@ $(function() {
         clearTimeout(messageTimeout);
         userMessage.fadeOut();
         $('.downButton').toggleClass('rotateNinety');
-        $('.challengeInfo').toggleClass('challengeDropdown');
+        challengeInfo.toggleClass('challengeDropdown');
         $('.challengeInfo ul').fadeToggle(100);
     });
 
@@ -122,8 +130,9 @@ $(function() {
     //filter search
     $('.submitSearch').bind('click', function(e) {
         e.preventDefault();
-        var text = '{' + $('.searchField').val() + '}',
-            html = '<p data-padre=999>' + text + '</p>';
+        var text = $('.searchField').val(),
+            displayText = '{' + text + '}',
+            html = '<p data-padre=999>' + displayText + '</p>';
 
         //check if the filter exists from that category already, if so, replace
         var found = false;
@@ -131,7 +140,7 @@ $(function() {
         $('.filterList p').each(function(i) {
             var old = parseInt($(this).attr('data-padre'),10);
             if(old === 999) {
-                $(this).text(text);
+                $(this).text(displayText);
                 found = true;
                 return true;
             }
@@ -148,6 +157,7 @@ $(function() {
             });
         }
         $('.searchField').val('');
+        filterKeyword(text);
     });
 
     //view more comments
@@ -169,21 +179,35 @@ $(function() {
         resize(false);
     });
 
+    //handle challenge selection
+    $('.selectLink').bind('click', function(e) {
+        e.preventDefault();
+        var num = $(this).attr('data-num');
+        $('.downButton').toggleClass('rotateNinety');
+        challengeInfo.toggleClass('challengeDropdown');
+        $('.challengeInfo ul').fadeToggle(100);
+        changeChallenge(num);
+        return false;
+    });
     //begin
     init();
-    
 });
 
 function resize(first) {
+    //get the dimensions of the browser
     width = $(window).width();
     height = $(window).height();
+
+    //make sure our comments popup changes to stay within the bounds of the browser
     $('.allComments').css('max-height', height - 300);
-    viz.attr('width', width-1).attr('height', height-4);
-    wrapper.css('height', height-1);
+    //adjust sizes of viz and wrapper
     
+    viz.attr('width', width-1).attr('height', height - 118);
+    wrapper.css('height', height-118);
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) + 60;
+    centerY = Math.floor(height / 2) - 50;
     
+    //if its not our first time (not on init), then we stop the motion, and do our resize timer
     if(!first) {
         force.alpha(0);
         clearTimeout(resizeTimer);
@@ -192,18 +216,21 @@ function resize(first) {
 }
 
 function resizeEnd() {
-    //change size and positions of circles
+    
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) + 60;
+    centerY = Math.floor(height / 2) - 50;
+    
+    //reset the scales accordingly for cirlce sizes
     setScales();
-    nodesEl
-        .attr('r', function(d) {
-            var sz = radiusScale(d.likes);
+    
+    //change size and positions of circles
+    viz.selectAll('circle')
+        .attr('r', function(d,i) {
+            var sz = radiusScale(d.likes_num);
             return sz;
-            // return radiusScale((d.comments + d.likes));
         });
+    //start up the movement again
     force.start();
-
 }
 
 function createPreloader() {
@@ -246,10 +273,7 @@ function incrementProgress() {
         .each('end',function() {
             d3.select(this).remove();
             userMessage.fadeIn(200, function() {
-                messageTimeout = setTimeout(function() {
-                    userMessage.fadeOut(200);
-                    setupForce();
-                }, 500);
+                setupForce();
             });
         });
     }
@@ -269,14 +293,13 @@ function init() {
     
     viz = d3.select('.vizContainer').append('svg');
     nodesData = [];
-    nodesEl = viz.selectAll('.people');
+    nodesEl = viz.selectAll('.node');
     resize(true);
     createPreloader();
     
     //temp thing until we get real data
-    
     meter_rate = 0.02;
-    d3.csv('../data/output2.csv',function(csv) {
+    d3.csv('../data/output219.csv',function(csv) {
         // var data = d3.nest()
         //             .key(function(d) {
         //                 return d.Race;
@@ -284,10 +307,10 @@ function init() {
         //             .entries(csv);
 
         bigData = csv;
-        
-        refineData();
+        setPropertiesFromData();
     })
     .on('progress', function(event){
+        // console.log(event.loaded);
     //update progress bar
         if (event.lengthComputable) {
             var percentComplete = Math.round(event.loaded * 100 / event.total);
@@ -299,7 +322,6 @@ function init() {
     });
     
 }
-
 function refineData() {
     //go thru each user and refine stuff (ie. change birth year to age group)
     bigData.forEach(function(o,i) {
@@ -310,108 +332,91 @@ function refineData() {
         o.gender = lower;
 
         //check if there IS a birth year
-        if(o.age.length > 0) {
+        if(o.birth.length > 0) {
             /** THIS WILL BE THE CASE WHEN ITS DATES SON **/
-            //var age = 2013 - parseInt(o.age,10);
+            var birth = 2013 - parseInt(o.birth,10);
 
-            if(o.age < 18) {
-                o.age = 'less than 18';
+            if(birth < 18) {
+                o.birth = 'less than 18';
             }
-            else if(o.age < 31) {
-                o.age = '18-30';
+            else if(birth < 31) {
+                o.birth = '18-30';
             }
-            else if(o.age < 41) {
-                o.age = '31-40';
+            else if(birth < 41) {
+                o.birth = '31-40';
             }
-            else if(o.age < 51) {
-                o.age = '41-50';
+            else if(birth < 51) {
+                o.birth = '41-50';
             }
             else {
-                o.age = 'over 50';
+                o.birth = 'over 50';
             }
         }
         else {
             //unspecified
-            o.age = 'unspecified';
+            o.birth = 'unspecified';
         }
     });
-
+}
+function setPropertiesFromData() {
+    bigData.forEach(function(o,i) {
+        o.focus = 1;
+    });
     maxLikes = d3.max(bigData, function(d,i) {
-        var num = parseInt(d.likes, 10);
+        var num = parseInt(d.likes_num, 10);
         return num;
 
     });
     maxComments = d3.max(bigData, function(d,i) {
-        var num = parseInt(d.comments, 10);
+        var num = parseInt(d.comments_num, 10);
         return num;
     });
     maxPopular = d3.max(bigData, function(d,i) {
-        var num = parseInt(d.comments, 10) + parseInt(d.likes, 10);
+        var num = parseInt(d.comments_num, 10) + parseInt(d.likes_num, 10);
         return num;
     });
 
-    // console.log(maxPopular, maxLikes, maxComments);
+    nestedData = d3.nest()
+        .key(function(d) {
+            return d.challenge_id;
+        })
+        .map(bigData);
+
+    loadUsersAndChallenges();
     setScales();
-
-    nodesData = bigData;
-    //nodesData = nodesData;
-
 }
+
+function loadUsersAndChallenges() {
+    d3.csv('../data/users.csv',function(csv_users) {
+        users = csv_users;
+        users = d3.nest()
+        .key(function(d) {
+            return d.user_id;
+        })
+        .map(users);
+        d3.csv('../data/challenges.csv',function(csv_challenges) {
+            challenges = csv_challenges;
+            ready = true;
+        });
+    });
+}
+
 function setupForce() {
     force = d3.layout.force()
                 .nodes(nodesData)
                 .size([width,height])
-                .charge(function(d){
-                    // var sz = radiusScale((d.comments + d.likes));
-                    var sz = radiusScale(d.likes);
-                    return -Math.pow(sz, 2.0) / 4.0;
-                })
-                .friction([0.9])
-                .gravity([-0.01])
                 .on('tick', function(e) {
-                    nodesEl.each(moveToCenter(e.alpha))
+                    nodesEl.select('circle').each(moveToCenter(e.alpha))
                         .attr('cx', function(d) { return d.x; })
                         .attr('cy', function(d) { return d.y; });
+                    nodesEl.attr("cx", function(d) { return d.x; })
+                        .attr("cy", function(d) { return d.y; });
+                    nodesEl.select('text').each(moveToCenter(e.alpha))
+                        .attr('x', function(d) { return d.x; })
+                        .attr('y', function(d) { return d.y; });
+                    nodesEl.attr("x", function(d) { return d.x; })
+                        .attr("y", function(d) { return d.y; });
                 });
-
-              // nodes = viz.selectAll('circle')
-              //           .data(nodesData)
-              //           .enter()
-              //           .append('circle')
-              //           .attr('r', function(d) {
-              //               var sz = radiusScale(d.likes);
-              //               return sz;
-              //               // return radiusScale((d.comments + d.likes));
-              //           })
-              //           .style('fill', function(d) {
-                            
-              //               var s = colorScale(parseInt(d.comparative,10));
-              //               //console.log(d.comparative,s);
-              //               return colorScale(d.comparative);
-              //           })
-              //           // .style('stroke', function(d) {
-              //           //     var col = d3.rgb(colorScale(d.comparative));
-              //           //     return col.darker();
-              //           // })
-              //           .classed('defaultCircle',true)
-              //           .call(force.drag)
-              //           .on('click', showText);
-
-                // viz.selectAll('text')
-                //     .data(nodesData)
-                //     .enter()
-                //     .append('text')
-                //     .text(function(d) {
-                //         return d.comments;
-                //    })
-                //    .attr('font-family', 'sans-serif')
-                //    .attr('font-size', '11px')
-                //    .attr('fill', 'white');
-            // force.on('tick', function() {
-            //     nodes.attr('cx', function(d) { return d.x; })
-            //         .attr('cy', function(d) { return d.y; });
-            // });
-    start();
 }
 
 function moveToCenter(alph) {
@@ -424,47 +429,117 @@ function moveToCenter(alph) {
 }
 
 function showText(d) {
+    if(d.label) {
+        deleteLabel(d);
+        return;
+    }
     $('.displayInfo .mainResponse').text(d.response);
     $('.displayInfo').show();
 }
 function hideText(d) {
     $('.displayInfo').hide();
 }
-
-function start() {
+function deleteLabel(d) {
     
-    //nodes = node.data(force.nodes(), function(d) { return d.id;});
-    //nodes.enter().append('circle').attr('class', function(d) { return 'node ' + d.id; }).attr('r', 8);
-    //node.exit().remove();
-    nodesEl = nodesEl.data(force.nodes());
-    nodesEl
-        .enter()
-        .append('circle')
+    if(compare) {
+        $('.filterList p').each(function(i){
+            this.remove();
+            compare = false;
+        });
+        $('.wrapper-dropdown span').removeClass('activeFilter');
+    }
+    else {
+       var filterName = '{' + d.name + '}';
+
+        //remove the node
+        for(var i = 0; i < nodesData.length; i++) {
+            if(nodesData[i].name === d.name) {
+                nodesData.splice(i,1);
+                continue;
+            }
+        }
+
+        //remove from currentFilters
+        $('.filterList p').each(function(i){
+            var text = $(this).text().toLowerCase();
+
+            if(text === filterName) {
+                var thisIndex = $(this).attr('data-padre'),
+                    el = dropdown.get(thisIndex);
+                
+                $(el).children().removeClass('activeFilter');
+                this.remove();
+
+            }
+        });
+    }
+    
+    //update data
+    updateData();
+    //reset dropdown
+    // start();
+
+}
+
+function start(filter) {
+    //join
+    nodesEl = nodesEl.data(force.nodes(), function(d) {
+        return d.user_id;
+    });
+
+    //enter
+    var g = nodesEl.enter().append('g')
+        .classed('node', true)
+        .classed('label', function(d,i) {
+            if(d.label) {
+                return true;
+            }
+            return false;
+        });
+
+    g.append('circle')
         .attr('r', function(d) {
-            var sz = radiusScale(d.likes);
+            if(d.label) {
+                //based the size on the number of letters
+                return d.len;
+            }
+            var sz = radiusScale(d.likes_num);
             return sz;
-            // return radiusScale((d.comments + d.likes));
+            // return radiusScale((d.comments_num + d.likes_num));
         })
         .style('fill', function(d,i) {
             var s = colorScale(parseInt(d.comparative,10));
             //console.log(d.comparative,s);
+            if(d.label === true) {
+                return 'rgba(0,0,0,0)';
+            }
             return colorScale(d.comparative);
         })
-        // .style('stroke', function(d) {
-        //     var col = d3.rgb(colorScale(d.comparative));
-        //     return col.darker();
-        // })
-        .classed('defaultCircle',true)
-        .classed('people', true)
         .call(force.drag)
-        .on('click', showText)
-        .on('mouseover', showCommentCount)
-        .on('mouseout', hideCommentCount);
+        .on('click', showText);
+
+    g.append('text')
+        .text(function(d) {
+            if(d.label) {
+                return d.name;
+            }
+            return '';
+        })
+        .classed('off', function(d) {
+            return !d.label;
+        })
+        .on('click', deleteLabel)
+        .on('mouseover', highlightText)
+        .on('mouseout', regularText)
+        .attr('dy', '.3em')
+        .style('text-anchor', 'middle');
+
     nodesEl.exit().remove();
     force.start();
 }
 
 function updateData() {
+    
     //extract value from filter list
     currentFilters = [];
     $('.filterList p').each(function(i){
@@ -472,7 +547,7 @@ function updateData() {
             len = text.length,
             sub = text.substring(1,len-1).toLowerCase(),
             padre = $(this).attr('data-padre'),
-            el = $('.wrapper-dropdown').get(padre),
+            el = dropdown.get(padre),
             child = $(el).children()[0],
             catName = $(child).text().toLowerCase();
 
@@ -481,6 +556,7 @@ function updateData() {
                 name: sub
             };
             currentFilters.push(tempFilter);
+            //nodesData.push({focus: 1, len: sub.length, label: true, name: sub});
     });
 
     if(currentFilters.length > 0) {
@@ -489,10 +565,16 @@ function updateData() {
             o.focus = 1;
             for(var a = 0; a < currentFilters.length; a++) {
                 //console.log(o[currentFilters[a].category], currentFilters[a].name);
-                if(o[currentFilters[a].category] !== currentFilters[a].name) {
+                //find out if the user id of o is of that value
+                console.log(users[o.user_id][0]);
+                if(users[o.user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
                     o.focus = 2;
                     continue;
                 }
+                // if(o[currentFilters[a].category] !== currentFilters[a].name) {
+                //     o.focus = 2;
+                //     continue;
+                // }
             }
         });
     }
@@ -502,8 +584,9 @@ function updateData() {
             o.focus = 1;
         });
     }
+    updateLabels();
     updateNodes();
-    force.resume();
+    start();
 }
 
 function updateNodes(compare) {
@@ -512,14 +595,16 @@ function updateNodes(compare) {
             return false;
         }
         else {
+            if(d.label) {
+                return false;
+            }
             if(d.focus === 2) {
                 return true;
             }
             else {
                 return false;
             }
-        }
-        
+        }      
     });
 }
 
@@ -543,58 +628,53 @@ function compareAll(sibs, categoryName) {
         sibs.each(function() {
             var txtVal = $(this).text().toLowerCase();
             filterValues.push(txtVal);
+                       
         });
-
+        compareLabels(filterValues);
         nodesData.forEach(function(o,i) {
             for(var a = 0; a < filterValues.length; a++) {
-                ///console.log(o[categoryName], filterValues[a]);
-                if(o[categoryName] === filterValues[a]) {
+                if(users[o.user_id][0][categoryName] === filterValues[a]) {
+                // if(o[categoryName] === filterValues[a]) {
                     o.focus = (a + 1);
-                    //console.log(o.focus, foci);
                     continue;
                 }
             }
         });
 
-        createLabels(filterValues);
         updateNodes(true);
         force.resume();
 
 }
 
-function removeAllFilters() {
-    dropdown.children().removeClass('activeFilter');
-    $('.filterList p').remove();
-    removeLabels();
-
-}
-
+//when a filter is selected, we must figure out a lot of things,
+//like what were the filters before, what should they be, etc.
 function selectFilter(selection) {
     var padre = $(selection).parentsUntil('.filters'),
             curDrop = $(padre[2]).children(),
             index = $(padre[2]).index('.wrapper-dropdown'),
-            text = '{' + $(selection).text() + '}',
+            text = $(selection).text();
+            displayText = '{' + text + '}',
             catName = $(curDrop[0]).text().toLowerCase(),
             compare = false,
-            html = null;
+            html = null,
+            sibs = null;
 
         //check if the filter exists from that category already, if so, replace
         var found = false;
         
         //if (compare all), remove all filters
-        if($(selection).text() === 'Compare All') {
+        if(text === 'Compare All') {
             compare = true;
             removeAllFilters();
-            var par = $(selection).parent(),
-                sibs = par.siblings(),
-                numSibs = sibs.length;
-
+            var par = $(selection).parent();
+            sibs = par.siblings();
+            var numSibs = sibs.length;
+            
             foci = numSibs;
-            compareAll(sibs, catName);
-            html = '<p data-compare="-1" data-padre=' + index +'>' + text + '</p>';
+            html = '<p data-compare="-1" data-padre=' + index +'>' + displayText + '</p>';
         }
         else {
-            html = '<p data-compare="0" data-padre=' + index +'>' + text + '</p>';
+            html = '<p data-compare="0" data-padre=' + index +'>' + displayText + '</p>';
         }
 
         //if there is a compare all, we should remove it
@@ -604,17 +684,18 @@ function selectFilter(selection) {
             var old = parseInt($(this).attr('data-padre'),10),
                 isCompare = parseInt($(this).attr('data-compare'), 10);
 
-            if(old === index) {
-                $(this).text(text);
-                found = true;
-                return true;
-            }
-            //this means there WAS a compare all, but now we will remove it
             if(isCompare === -1) {
                 $(this).remove();
                 var thisIndex = $(this).attr('data-padre'),
-                    el = $('.wrapper-dropdown').get(thisIndex);
+                    el = dropdown.get(thisIndex);
                 $(el).children().removeClass('activeFilter');
+            }
+
+            //replace the text if it is the same category AND not a compare all
+            else if(old === index) {
+                $(this).text(displayText);
+                found = true;
+                return true;
             }
         });
 
@@ -626,45 +707,116 @@ function selectFilter(selection) {
 
             //delete filter on click
             $('.filterList p').bind('click', function() {
-                removeLabels();
+                $(this).remove();
                 //change color of dropdown menu
                 var index = $(this).attr('data-padre'),
-                    el = $('.wrapper-dropdown').get(index);
+                    el = dropdown.get(index);
                 $(el).children().removeClass('activeFilter');
-
-                //remove from filter list
-                $(this).remove();
                 updateData();
             });
         }
-
         if(!compare) {
             updateData();
         }
+        else {
+            compareAll(sibs, catName);
+        }
 }
 
-function showCommentCount(d) {
-    //move a text item to be on top current circle
+//remove the labels from the bottom
+function removeAllFilters() {
+    dropdown.children().removeClass('activeFilter');
+    $('.filterList p').remove();
 }
-function hideCommentCount(d) {
 
-}
-function createLabels(titles) {
-    //create a label for each category
-    for(var i = 0; i < titles.length; i++) {
-        var newLabel = '<p>' + titles[i] + '</p>';
-        $('.compareLabels').append(newLabel);
-        //position it
-        var cur = $('.compareLabels p').get(i),
-            x = Math.floor((i + 1) / (foci + 1) * 100),
-            perc = x + '%';
-            console.log(perc);
-            // off = $(cur).width() / 2;
-        // console.log(off);
-        $(cur).css('left', perc);
+//update the labels for the compare all feature
+function compareLabels(filters) {
+    //delete all labels
+    nodesData = nodesData.filter(isLabel);
+    
+    //add new ones
+    for(var i = 0; i < filters.length; i++) {
+        var realFocus = i + 1,
+            startX = (realFocus / foci) * width;
+        nodesData.push({focus: realFocus, len: filters[i].length, label: true, name: filters[i], user_id: filters[i], x: startX, y: centerY});
     }
+    force.nodes(nodesData);
+    //must call start here since we aren't joining the new data anywhere else
+    start();
+    recharge();
+}
+
+//update the labels when we are not comparing all
+function updateLabels() {
+    //delete all label nodes
+    nodesData = nodesData.filter(isLabel);
+    var len = currentFilters.length,
+        interval = 60,
+        topStart = centerY - ((interval * len) / 2);
+
+
+    //go thru and push all the new ones
+    for(var i = 0; i < len; i++) {
+        var startY = topStart + interval * i,
+            startX = len > 1 ? (width * 0.33) : centerX;
+        nodesData.push({focus: 1, len: currentFilters[i].name.length, label: true, name: currentFilters[i].name, user_id: currentFilters[i].category, x: startX, y: startY});
+    }
+    force.nodes(nodesData);
+    recharge();
+}
+    
+function isLabel(element, index, array) {
+    return (element.label !== true);
+}
+function recharge() {
+    force.charge(function(d){
+        if(d.label) {
+            return -Math.pow(d.len, 2.0) * 6;
+        }
+        var sz2 = radiusScale(d.likes_num);
+        return -Math.pow(sz2, 2.0) / 2.0;
+    })
+    .friction([0.9])
+    .gravity([-0.01]);
+}
+
+function changeChallenge(cur) {
+    $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
+    $('.challengeQuestion').text(challenges[cur].challenge_question);
+    challengeData = [];
+    $('.wrapper-dropdown span').removeClass('activeFilter');
+    compare = false;
+    $('.filterList').empty();
+    var challengeId = challenges[cur].challenge_id;
+    challengeData = nestedData[challengeId];
+    nodesData = challengeData;
+    force.nodes(nodesData);
+    recharge();
+    start();
+}
+
+function filterKeyword(word) {
 
 }
-function removeLabels() {
-    $('.compareLabels').empty();
+function getKeywords(input) {
+    results = [],
+    split = input.replace(/[^a-zA-Z ]+/g, '')
+            .replace('/ {2,}/',' ')
+            .toLowerCase()
+            .split(' ');
+
+    for(var i =0; i< split.length; i++) {
+        if(split[i].length > 1) {
+            results.push(split[i]);
+        }
+    }
+    return results;
+}
+
+function highlightText(d) {
+    d3.select(this).style('fill', '#EA446A');
+}
+
+function regularText(d) {
+    d3.select(this).style('fill', '#000');
 }
