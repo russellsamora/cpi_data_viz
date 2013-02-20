@@ -38,7 +38,8 @@ var currentInfo = null,
     users = null,
     ready = false,
     challengeShowing = false,
-    drumLine = false;
+    drumLine = false,
+    selectedCircle = null;
 
 $(function() {
 
@@ -107,12 +108,7 @@ $(function() {
     //close response box
     $('.displayInfo a').bind('click', function(e) {
         e.preventDefault();
-
-        $('.displayInfo').fadeOut(100, function() {
-            $('.allComments').hide();
-            $('.viewComments').text('view comments');
-            showingComments = false;
-        });
+        hideText();
     });
 
     //slide the challenge window
@@ -188,11 +184,14 @@ $(function() {
     //handle challenge selection
     $('.selectLink').bind('click', function(e) {
         e.preventDefault();
-        var num = $(this).attr('data-num');
-        $('.downButton').toggleClass('rotateNinety');
-        challengeInfo.toggleClass('challengeDropdown');
-        $('.challengeInfo ul').fadeToggle(100);
-        changeChallenge(num);
+        if(ready) {
+            var num = $(this).attr('data-num');
+            $('.downButton').toggleClass('rotateNinety');
+            challengeInfo.toggleClass('challengeDropdown');
+            $('.challengeInfo ul').fadeToggle(100);
+            changeChallenge(num);
+        }
+        
         return false;
     });
     //begin
@@ -252,8 +251,8 @@ function init() {
         bigData = csv;
         setPropertiesFromData();
     })
-    .on('error', function() {
-        console.log('error loading data');
+    .on('error', function(e) {
+        console.log(e);
     });
 }
 
@@ -332,10 +331,11 @@ function loadUsersAndChallenges() {
         .map(refinedUsers);
         d3.csv('../data/challenges.csv',function(csv_challenges) {
             challenges = csv_challenges;
-            ready = true;
             userMessage.fadeOut(1000, function() {
                 $(this).text('Select a challenge above to begin!');
-                $(this).fadeIn(200);
+                $(this).fadeIn(200, function() {
+                    ready = true;
+                });
             });
         });
     });
@@ -381,12 +381,26 @@ function showText(d) {
         deleteLabel(d);
         return;
     }
+    selectedCircle = this;
+    d3.select(this).classed('selectedCircle', true);
     $('.displayInfo .mainResponse').text(d.response);
+    if(d.comments_num > 0) {
+        $('.displayInfo .viewComments').show();
+    }
+    else {
+        $('.displayInfo .viewComments').hide();
+    }
     $('.displayInfo').show();
 }
 
-function hideText(d) {
-    $('.displayInfo').hide();
+function hideText() {
+    $('.displayInfo').fadeOut(100, function() {
+        $('.allComments').hide();
+        $('.viewComments').text('view comments');
+        showingComments = false;
+    });
+    d3.select(selectedCircle).classed('selectedCircle', false);
+    selectedCircle = null;
 }
 function deleteLabel(d) {
     if(compare) {
@@ -743,6 +757,7 @@ function recharge() {
 
 function changeChallenge(cur) {
     challengeShowing = true;
+    hideText();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     $('.challengeQuestion').text(challenges[cur].challenge_question);
     challengeData = [];
