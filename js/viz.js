@@ -37,7 +37,8 @@ var currentInfo = null,
     challenges = null,
     users = null,
     ready = false,
-    challengeShowing = false;
+    challengeShowing = false,
+    drumLine = false;
 
 $(function() {
 
@@ -94,6 +95,15 @@ $(function() {
         $('.helpArea').fadeOut();
     });
 
+    //key press?
+    $(window).bind('keypress', function(e){
+        console.log(currentFilters.length);
+        if(e.which === 114 && currentFilters.length === 0 && !compare) {
+            drumLine = !drumLine;
+            force.start();
+        }
+    });
+
     //close response box
     $('.displayInfo a').bind('click', function(e) {
         e.preventDefault();
@@ -118,6 +128,7 @@ $(function() {
     $('.dropdown li a').bind('click', function(e) {
         e.preventDefault();
         if(challengeShowing && ready) {
+            drumLine = false;
             selectFilter(this);
         }
     });
@@ -322,7 +333,10 @@ function loadUsersAndChallenges() {
         d3.csv('../data/challenges.csv',function(csv_challenges) {
             challenges = csv_challenges;
             ready = true;
-            userMessage.fadeIn();
+            userMessage.fadeOut(1000, function() {
+                $(this).text('Select a challenge above to begin!');
+                $(this).fadeIn(200);
+            });
         });
     });
 }
@@ -348,8 +362,15 @@ function setupForce() {
 
 function moveToCenter(alph) {
     
-    return function(d) {
-        var targetX = Math.floor((d.focus / (foci+1)) * width);
+    return function(d, i) {
+        var targetX = null;
+        if(drumLine) {
+            targetX = (i+1) / nodesData.length * width;
+        }
+        else {
+            targetX = Math.floor((d.focus / (foci+1)) * width);
+        }
+        
         d.x = d.x + (targetX - d.x) * (0.12) * alph;
         d.y = d.y + (centerY - d.y) * (0.12) * alph;
     };
@@ -368,16 +389,15 @@ function hideText(d) {
     $('.displayInfo').hide();
 }
 function deleteLabel(d) {
-    
     if(compare) {
         $('.filterList p').each(function(i){
-            this.remove();
+            $(this).remove();
             compare = false;
         });
         $('.wrapper-dropdown span').removeClass('activeFilter');
     }
     else {
-       var filterName = '{' + d.name + '}';
+        var filterName = '{' + d.name + '}';
 
         //remove the node
         for(var i = 0; i < nodesData.length; i++) {
@@ -390,13 +410,12 @@ function deleteLabel(d) {
         //remove from currentFilters
         $('.filterList p').each(function(i){
             var text = $(this).text().toLowerCase();
-
             if(text === filterName) {
                 var thisIndex = $(this).attr('data-padre'),
                     el = dropdown.get(thisIndex);
                 
                 $(el).children().removeClass('activeFilter');
-                this.remove();
+                $(this).remove();
 
             }
         });
@@ -466,7 +485,7 @@ function start(filter) {
     //select all circles, update their radius and color
     d3.selectAll('.node')
         .select('circle')
-        .transition(500)
+        .transition(2000)
         .attr('r', function(d){
             if(d.label) {
                 //based the size on the number of letters
@@ -561,13 +580,12 @@ function updateData() {
         });
     }
     else {
-        
         foci = 1;
         nodesData.forEach(function(o,i) {
             o.focus = 1;
         });
     }
-    updateNodes();
+    setTimeout(updateNodes,17);
     start();
 }
 
@@ -594,7 +612,7 @@ function compareAll(sibs, categoryName) {
         });
 
         updateNodes(true);
-        force.resume();
+        force.start();
 }
 
 //when a filter is selected, we must figure out a lot of things,
@@ -651,7 +669,6 @@ function selectFilter(selection) {
             $(curDrop[0]).addClass('activeFilter');
 
             filterList.append(html);
-
             //delete filter on click
             $('.filterList p').bind('click', function() {
                 $(this).remove();
@@ -734,9 +751,10 @@ function changeChallenge(cur) {
     $('.filterList').empty();
     var challengeId = challenges[cur].challenge_id;
     challengeData = nestedData[challengeId];
-    console.log(nodesData);
+
     nodesData = challengeData;
-    console.log(nodesData);
+    updateData();
+
     force.nodes(nodesData);
     start();
 }
