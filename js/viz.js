@@ -16,14 +16,6 @@ var currentInfo = null,
     height = 0,
     centerX = 0,
     centerY = 0,
-    arc = null,
-    meter = null,
-    meter_foreground = null,
-    meter_text = null,
-    meter_progress = 0,
-    twoPi = 2 * Math.PI,
-    formatPercent = d3.format('.0%'),
-    meter_rate = 0.001,
     topBar = 112,
     bigData = null,
     nestedData = null,
@@ -44,14 +36,15 @@ var currentInfo = null,
     resizeTimer = null,
     challenges = null,
     users = null,
-    ready = false;
+    ready = false,
+    challengeShowing = false;
 
 $(function() {
 
-     //create selector vars
+    //create selector vars
     currentInfo = $('.currentInfo');
     challengeInfo = $('.challengeInfo');
-    vizContainer = $('.vizContainer');
+    vizContainer = $('.wrapper');
     drop_stake = $('#drop_stake');
     drop_gender = $('#drop_gender');
     drop_race = $('#drop_race');
@@ -115,7 +108,7 @@ $(function() {
     //slide the challenge window
     $('.challengeLink').bind('click', function() {
         clearTimeout(messageTimeout);
-        userMessage.fadeOut();
+        userMessage.hide();
         $('.downButton').toggleClass('rotateNinety');
         challengeInfo.toggleClass('challengeDropdown');
         $('.challengeInfo ul').fadeToggle(100);
@@ -124,7 +117,9 @@ $(function() {
     //filter click
     $('.dropdown li a').bind('click', function(e) {
         e.preventDefault();
-        selectFilter(this);
+        if(challengeShowing && ready) {
+            selectFilter(this);
+        }
     });
 
     //filter search
@@ -208,7 +203,7 @@ function resize(first) {
     centerY = Math.floor(height / 2) - 50;
     
     //if its not our first time (not on init), then we stop the motion, and do our resize timer
-    if(!first) {
+    if(!first && ready) {
         force.alpha(0);
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(resizeEnd, 1000);
@@ -230,134 +225,64 @@ function resizeEnd() {
             return sz;
         });
     //start up the movement again
+    recharge();
     force.start();
-}
-
-function createPreloader() {
-    arc = d3.svg.arc()
-        .startAngle(0)
-        .innerRadius(32)
-        .outerRadius(48);
-
-    meter = viz.append('g')
-                .attr('class', 'progress-meter')
-                .attr('transform', function() {
-                    var trans = 'translate(' + centerX + ', ' + centerY + ')';
-                    return trans;
-                });
-
-    meter.append('path')
-        .attr('class', 'meter-background')
-        .attr('d', arc.endAngle(twoPi));
-
-    meter_foreground = meter.append('path')
-        .attr('class', 'meter-foreground');
-
-    meter_text = meter.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dy', '.35em');
-
-    
-    incrementProgress();
-}
-
-//progress
-function incrementProgress() {
-    meter_progress += meter_rate;
-    if(meter_progress >= 1) {
-        meter_progress = 1;
-        meter
-        .transition()
-        .duration(1000)
-        .style('opacity',0)
-        .each('end',function() {
-            d3.select(this).remove();
-            userMessage.fadeIn(200, function() {
-                setupForce();
-            });
-        });
-    }
-    else {
-        setTimeout(incrementProgress, 17);
-    }
-    d3.transition().tween('progress', function() {
-        return function() {
-            meter_foreground.attr('d', arc.endAngle(twoPi * meter_progress));
-            meter_text.text(formatPercent(meter_progress));
-            };
-    });
 }
 
 function init() {
     //setup d3
     
-    viz = d3.select('.vizContainer').append('svg');
+    viz = d3.select('.wrapper').append('svg');
     nodesData = [];
     nodesEl = viz.selectAll('.node');
     resize(true);
-    createPreloader();
-    
-    //temp thing until we get real data
-    meter_rate = 0.02;
+    setupForce();
     d3.csv('../data/output219.csv',function(csv) {
-        // var data = d3.nest()
-        //             .key(function(d) {
-        //                 return d.Race;
-        //             })
-        //             .entries(csv);
-
         bigData = csv;
         setPropertiesFromData();
-    })
-    .on('progress', function(event){
-        // console.log(event.loaded);
-    //update progress bar
-        if (event.lengthComputable) {
-            var percentComplete = Math.round(event.loaded * 100 / event.total);
-            console.log(percentComplete);
-        }
     })
     .on('error', function() {
         console.log('error loading data');
     });
-    
 }
-function refineData() {
-    //go thru each user and refine stuff (ie. change birth year to age group)
-    bigData.forEach(function(o,i) {
-        o.focus = 1;
+
+function refineUsers(firstUsers) {
+    //go thru each user and refine stuff (ie. change age year to age group)
+    firstUsers.forEach(function(o,i) {
 
         //tolowercase for bad data....
         var lower = o.gender.toLowerCase();
         o.gender = lower;
 
-        //check if there IS a birth year
-        if(o.birth.length > 0) {
+        //check if there IS a age year
+        if(o.age.length > 0) {
             /** THIS WILL BE THE CASE WHEN ITS DATES SON **/
-            var birth = 2013 - parseInt(o.birth,10);
+            var age = 2013 - parseInt(o.age,10);
 
-            if(birth < 18) {
-                o.birth = 'less than 18';
+            if(age < 18) {
+                o.age = 'less than 18';
             }
-            else if(birth < 31) {
-                o.birth = '18-30';
+            else if(age < 31) {
+                o.age = '18-30';
             }
-            else if(birth < 41) {
-                o.birth = '31-40';
+            else if(age < 41) {
+                o.age = '31-40';
             }
-            else if(birth < 51) {
-                o.birth = '41-50';
+            else if(age < 51) {
+                o.age = '41-50';
             }
             else {
-                o.birth = 'over 50';
+                o.age = 'over 50';
             }
         }
         else {
             //unspecified
-            o.birth = 'unspecified';
+            o.age = 'unspecified';
         }
     });
+    return firstUsers;
 }
+
 function setPropertiesFromData() {
     bigData.forEach(function(o,i) {
         o.focus = 1;
@@ -388,14 +313,16 @@ function setPropertiesFromData() {
 
 function loadUsersAndChallenges() {
     d3.csv('../data/users.csv',function(csv_users) {
+        var refinedUsers = refineUsers(csv_users);
         users = d3.nest()
         .key(function(d) {
             return d.user_id;
         })
-        .map(csv_users);
+        .map(refinedUsers);
         d3.csv('../data/challenges.csv',function(csv_challenges) {
             challenges = csv_challenges;
             ready = true;
+            userMessage.fadeIn();
         });
     });
 }
@@ -416,6 +343,7 @@ function setupForce() {
                     nodesEl.attr("x", function(d) { return d.x; })
                         .attr("y", function(d) { return d.y; });
                 });
+    recharge();
 }
 
 function moveToCenter(alph) {
@@ -435,6 +363,7 @@ function showText(d) {
     $('.displayInfo .mainResponse').text(d.response);
     $('.displayInfo').show();
 }
+
 function hideText(d) {
     $('.displayInfo').hide();
 }
@@ -477,7 +406,6 @@ function deleteLabel(d) {
     updateData();
     //reset dropdown
     // start();
-
 }
 
 function start(filter) {
@@ -533,59 +461,35 @@ function start(filter) {
         .attr('dy', '.3em')
         .style('text-anchor', 'middle');
 
-    nodesEl.exit().remove();
-    force.start();
-}
 
-function updateData() {
-    
-    //extract value from filter list
-    currentFilters = [];
-    $('.filterList p').each(function(i){
-        var text = $(this).text(),
-            len = text.length,
-            sub = text.substring(1,len-1).toLowerCase(),
-            padre = $(this).attr('data-padre'),
-            el = dropdown.get(padre),
-            child = $(el).children()[0],
-            catName = $(child).text().toLowerCase();
-
-            tempFilter = {
-                category: catName,
-                name: sub
-            };
-            currentFilters.push(tempFilter);
-            //nodesData.push({focus: 1, len: sub.length, label: true, name: sub});
-    });
-
-    if(currentFilters.length > 0) {
-        foci = 2;
-        nodesData.forEach(function(o,i) {
-            o.focus = 1;
-            for(var a = 0; a < currentFilters.length; a++) {
-                //console.log(o[currentFilters[a].category], currentFilters[a].name);
-                //find out if the user id of o is of that value
-                console.log(users[o.user_id][0]);
-                if(users[o.user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
-                    o.focus = 2;
-                    continue;
-                }
-                // if(o[currentFilters[a].category] !== currentFilters[a].name) {
-                //     o.focus = 2;
-                //     continue;
-                // }
+    //update
+    //select all circles, update their radius and color
+    d3.selectAll('.node')
+        .select('circle')
+        .transition(500)
+        .attr('r', function(d){
+            if(d.label) {
+                //based the size on the number of letters
+                return d.len;
             }
+            var sz = radiusScale(d.likes_num);
+            return sz;
+        })
+         .style('fill', function(d,i) {
+            var s = colorScale(parseInt(d.comparative,10));
+            //console.log(d.comparative,s);
+            if(d.label === true) {
+                return 'rgba(0,0,0,0)';
+            }
+            return colorScale(d.comparative);
         });
-    }
-    else {
-        foci = 1;
-        nodesData.forEach(function(o,i) {
-            o.focus = 1;
-        });
-    }
-    updateLabels();
-    updateNodes();
-    start();
+
+    nodesEl.exit()
+        .transition()
+        .duration(500)
+        .style('fill-opacity', 0)
+        .remove();
+    force.start();
 }
 
 function updateNodes(compare) {
@@ -603,7 +507,7 @@ function updateNodes(compare) {
             else {
                 return false;
             }
-        }      
+        }
     });
 }
 
@@ -619,7 +523,52 @@ function setScales() {
     //PiYG
     // colorScale = d3.scale.ordinal().domain([0,maxLikes]).range(colorbrewer.GnBu[7]);
     colorScale = d3.scale.quantize().domain([-2,2]).range(colorbrewer.GnBu[7]);
+}
+function updateData() {
     
+    //extract value from filter list
+    currentFilters = [];
+    $('.filterList p').each(function(i){
+        var text = $(this).attr('data-name'),
+            padre = $(this).attr('data-padre'),
+            el = dropdown.get(padre),
+            child = $(el).children()[0],
+            catName = $(child).text().toLowerCase();
+
+            tempFilter = {
+                category: catName,
+                name: text
+            };
+            currentFilters.push(tempFilter);
+            //nodesData.push({focus: 1, len: sub.length, label: true, name: sub});
+    });
+
+    updateLabels();
+    if(currentFilters.length > 0) {
+        foci = 2;
+        
+        nodesData.forEach(function(o,i) {
+            if(!o.label) {
+                o.focus = 1;
+                for(var a = 0; a < currentFilters.length; a++) {
+                    // console.log(users[o.user_id][0][currentFilters[a].category], currentFilters[a].name);
+                    if(users[o.user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
+                        o.focus = 2;
+                        continue;
+                    }
+                }
+            }
+        });
+    }
+    else {
+        
+        foci = 1;
+        nodesData.forEach(function(o,i) {
+            o.focus = 1;
+        });
+    }
+    updateNodes();
+    start();
 }
 
 function compareAll(sibs, categoryName) {
@@ -627,22 +576,25 @@ function compareAll(sibs, categoryName) {
         sibs.each(function() {
             var txtVal = $(this).text().toLowerCase();
             filterValues.push(txtVal);
-                       
         });
+        
         compareLabels(filterValues);
+
         nodesData.forEach(function(o,i) {
-            for(var a = 0; a < filterValues.length; a++) {
-                if(users[o.user_id][0][categoryName] === filterValues[a]) {
-                // if(o[categoryName] === filterValues[a]) {
-                    o.focus = (a + 1);
-                    continue;
+            if(!o.label) {
+                for(var a = 0; a < filterValues.length; a++) {
+                //console.log(users[o.user_id][0][categoryName], filterValues[a]);
+                    if(users[o.user_id][0][categoryName] === filterValues[a]) {
+                        o.focus = (a + 1);
+                        continue;
+                    }
                 }
             }
+            
         });
 
         updateNodes(true);
         force.resume();
-
 }
 
 //when a filter is selected, we must figure out a lot of things,
@@ -651,43 +603,39 @@ function selectFilter(selection) {
     var padre = $(selection).parentsUntil('.filters'),
             curDrop = $(padre[2]).children(),
             index = $(padre[2]).index('.wrapper-dropdown'),
-            text = $(selection).text();
+            text = $(selection).text().toLowerCase();
             displayText = '{' + text + '}',
             catName = $(curDrop[0]).text().toLowerCase(),
             compare = false,
             html = null,
             sibs = null;
-
-        //check if the filter exists from that category already, if so, replace
-        var found = false;
         
         //if (compare all), remove all filters
-        if(text === 'Compare All') {
+        if(text === 'compare all') {
             compare = true;
             removeAllFilters();
             var par = $(selection).parent();
             sibs = par.siblings();
             var numSibs = sibs.length;
-            
+
             foci = numSibs;
-            html = '<p data-compare="-1" data-padre=' + index +'>' + displayText + '</p>';
+            html = '<p data-compare="1" data-padre=' + index +'>' + displayText + '</p>';
         }
         else {
-            html = '<p data-compare="0" data-padre=' + index +'>' + displayText + '</p>';
+            html = '<p data-compare="0" data-name="' + text + '" data-padre=' + index +'>' + displayText + '</p>';
         }
 
+        var found = false;
         //if there is a compare all, we should remove it
-
         //go thru each filter, check it data-padre matches index
         $('.filterList p').each(function(i) {
             var old = parseInt($(this).attr('data-padre'),10),
                 isCompare = parseInt($(this).attr('data-compare'), 10);
 
-            if(isCompare === -1) {
+            //if there was pre-existing compare all, remove it.
+            if(isCompare === 1) {
                 $(this).remove();
-                var thisIndex = $(this).attr('data-padre'),
-                    el = dropdown.get(thisIndex);
-                $(el).children().removeClass('activeFilter');
+                resetMenuColor(this);
             }
 
             //replace the text if it is the same category AND not a compare all
@@ -707,10 +655,7 @@ function selectFilter(selection) {
             //delete filter on click
             $('.filterList p').bind('click', function() {
                 $(this).remove();
-                //change color of dropdown menu
-                var index = $(this).attr('data-padre'),
-                    el = dropdown.get(index);
-                $(el).children().removeClass('activeFilter');
+                resetMenuColor(this);
                 updateData();
             });
         }
@@ -742,7 +687,7 @@ function compareLabels(filters) {
     force.nodes(nodesData);
     //must call start here since we aren't joining the new data anywhere else
     start();
-    recharge();
+    // recharge();
 }
 
 //update the labels when we are not comparing all
@@ -761,7 +706,7 @@ function updateLabels() {
         nodesData.push({focus: 1, len: currentFilters[i].name.length, label: true, name: currentFilters[i].name, user_id: currentFilters[i].category, x: startX, y: startY});
     }
     force.nodes(nodesData);
-    recharge();
+    // recharge();
 }
     
 function isLabel(element, index, array) {
@@ -772,14 +717,15 @@ function recharge() {
         if(d.label) {
             return -Math.pow(d.len, 2.0) * 6;
         }
-        var sz2 = radiusScale(d.likes_num);
-        return -Math.pow(sz2, 2.0) / 2.0;
+        var sz = radiusScale(d.likes_num);
+        return -Math.pow(sz, 2.0) / 2.0;
     })
     .friction([0.9])
     .gravity([-0.01]);
 }
 
 function changeChallenge(cur) {
+    challengeShowing = true;
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     $('.challengeQuestion').text(challenges[cur].challenge_question);
     challengeData = [];
@@ -788,9 +734,10 @@ function changeChallenge(cur) {
     $('.filterList').empty();
     var challengeId = challenges[cur].challenge_id;
     challengeData = nestedData[challengeId];
+    console.log(nodesData);
     nodesData = challengeData;
+    console.log(nodesData);
     force.nodes(nodesData);
-    recharge();
     start();
 }
 
@@ -818,4 +765,10 @@ function highlightText(d) {
 
 function regularText(d) {
     d3.select(this).style('fill', '#000');
+}
+
+function resetMenuColor(item) {
+    var index = $(item).attr('data-padre'),
+                    el = dropdown.get(index);
+                $(el).children().removeClass('activeFilter');
 }

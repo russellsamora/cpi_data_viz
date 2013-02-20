@@ -23,14 +23,7 @@ h1,h2,h3 {
   font-family: "vinyl",sans-serif;
   font-weight: 100;
 }
-.vizContainer {
-    font-family: 'Inconsolata', monospace;
-    position: absolute;
-    top: 114px;
-    left: 0;
-    width: 100%;
-    z-index: 0;
-}
+
 .navigation {
     background: #EA446A;
     color: #fff;
@@ -39,7 +32,7 @@ h1,h2,h3 {
     height: 38px;
     z-index: 52;
     border-bottom: 2px solid #555;
-    border-bottom: 2px solid rgba(0,0,0,.3);
+    border-bottom: 2px solid rgba(0,0,0,0.3);
     /*-moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
     -webkit-box-shadow: 0 2px 2px 2px rgba(0,0,0,.5);
     box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);*/
@@ -59,12 +52,19 @@ h1,h2,h3 {
     float: right;
 }
 .wrapper {
-    /*position: absolute;
-    top: 0;
-    left: 0;*/
+    position: absolute;
+    top: 114px;
+    left: 0;
     width: 100%;
     min-width: 1024px;
     min-height: 600px;
+    z-index: -5;
+}
+svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Inconsolata', monospace;
     z-index: -1;
 }
 .intro {
@@ -489,7 +489,7 @@ h2.currentViz {
     color: #222;
     width: 640px;
     position: absolute;
-    top: 130px;
+    top: 30px;
     left: 30px; 
 }
 .label {
