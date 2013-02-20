@@ -39,7 +39,8 @@ var currentInfo = null,
     ready = false,
     challengeShowing = false,
     drumLine = false,
-    selectedCircle = null;
+    selectedCircle = null,
+    compare = false;
 
 $(function() {
 
@@ -96,15 +97,6 @@ $(function() {
         $('.helpArea').fadeOut();
     });
 
-    //key press?
-    $(window).bind('keypress', function(e){
-        console.log(currentFilters.length);
-        if(e.which === 114 && currentFilters.length === 0 && !compare) {
-            drumLine = !drumLine;
-            force.start();
-        }
-    });
-
     //close response box
     $('.displayInfo a').bind('click', function(e) {
         e.preventDefault();
@@ -132,34 +124,7 @@ $(function() {
     //filter search
     $('.submitSearch').bind('click', function(e) {
         e.preventDefault();
-        var text = $('.searchField').val(),
-            displayText = '{' + text + '}',
-            html = '<p data-padre=999>' + displayText + '</p>';
-
-        //check if the filter exists from that category already, if so, replace
-        var found = false;
-        //go thru each filter, check it data-padre matches index
-        $('.filterList p').each(function(i) {
-            var old = parseInt($(this).attr('data-padre'),10);
-            if(old === 999) {
-                $(this).text(displayText);
-                found = true;
-                return true;
-            }
-        });
-
-        //add a new one if the the category is not in filters
-        if(!found) {
-            filterList.append(html);
-
-            //delete filter on click
-            $('.filterList p').bind('click', function() {
-                //remove from filter list
-                $(this).remove();
-            });
-        }
-        $('.searchField').val('');
-        filterKeyword(text);
+        selectSearch(this);
     });
 
     //view more comments
@@ -181,18 +146,19 @@ $(function() {
         resize(false);
     });
 
-    //handle challenge selection
-    $('.selectLink').bind('click', function(e) {
-        e.preventDefault();
-        if(ready) {
-            var num = $(this).attr('data-num');
-            $('.downButton').toggleClass('rotateNinety');
-            challengeInfo.toggleClass('challengeDropdown');
-            $('.challengeInfo ul').fadeToggle(100);
-            changeChallenge(num);
+    //form shape click
+    $('.formShape').bind('click', function() {
+        console.log(compare, currentFilters.length);
+        if(currentFilters.length === 0 && !compare && challengeShowing) {
+            drumLine = !drumLine;
+            if(drumLine) {
+                $(this).css('background-position', '-32px');
+            }
+            else {
+                $(this).css('background-position', '0px');
+            }
+            force.start();
         }
-        
-        return false;
     });
     //begin
     init();
@@ -296,6 +262,7 @@ function refineUsers(firstUsers) {
 function setPropertiesFromData() {
     bigData.forEach(function(o,i) {
         o.focus = 1;
+        o.tokens = getTokens(o.response);
     });
     maxLikes = d3.max(bigData, function(d,i) {
         var num = parseInt(d.likes_num, 10);
@@ -322,15 +289,22 @@ function setPropertiesFromData() {
 }
 
 function loadUsersAndChallenges() {
+    //load demographic user info
     d3.csv('../data/users.csv',function(csv_users) {
+        //refine user data (ie. changing birth year to age range etc.)
         var refinedUsers = refineUsers(csv_users);
         users = d3.nest()
         .key(function(d) {
             return d.user_id;
         })
         .map(refinedUsers);
+
+        //load challenge info
         d3.csv('../data/challenges.csv',function(csv_challenges) {
             challenges = csv_challenges;
+            
+            populateChallenges();
+            //now all the data is ready, fade out the user message box
             userMessage.fadeOut(1000, function() {
                 $(this).text('Select a challenge above to begin!');
                 $(this).fadeIn(200, function() {
@@ -341,6 +315,28 @@ function loadUsersAndChallenges() {
     });
 }
 
+function populateChallenges() {
+    for(var i = 0; i < challenges.length; i++) {
+        var missionClass = '.mission' + challenges[i].mission_num;
+        var html = '<li><a class="selectLink" data-num="' + i + '" href="">' + challenges[i].challenge_title + '</a></li>';
+        $(missionClass).append(html);
+    }
+    //handle challenge selection
+    $('.selectLink').bind('click', function(e) {
+        e.preventDefault();
+        if(ready) {
+            var num = $(this).attr('data-num');
+            $('.downButton').toggleClass('rotateNinety');
+            challengeInfo.toggleClass('challengeDropdown');
+            $('.challengeInfo ul').fadeToggle(100, function() {
+                changeChallenge(num);
+            });
+            
+        }
+        
+        return false;
+    });
+}
 function setupForce() {
     force = d3.layout.force()
                 .nodes(nodesData)
@@ -377,10 +373,12 @@ function moveToCenter(alph) {
 }
 
 function showText(d) {
+
     if(d.label) {
         deleteLabel(d);
         return;
     }
+    hideText();
     selectedCircle = this;
     d3.select(this).classed('selectedCircle', true);
     $('.displayInfo .mainResponse').text(d.response);
@@ -394,13 +392,16 @@ function showText(d) {
 }
 
 function hideText() {
-    $('.displayInfo').fadeOut(100, function() {
+    if(selectedCircle) {
+        $('.displayInfo').hide();
         $('.allComments').hide();
         $('.viewComments').text('view comments');
         showingComments = false;
-    });
-    d3.select(selectedCircle).classed('selectedCircle', false);
-    selectedCircle = null;
+    
+        d3.select(selectedCircle).classed('selectedCircle', false);
+        selectedCircle = null;
+    }
+    
 }
 function deleteLabel(d) {
     if(compare) {
@@ -516,6 +517,11 @@ function start(filter) {
             }
             return colorScale(d.comparative);
         });
+    d3.selectAll('.label')
+        .select('text')
+        .text(function(d) {
+            return d.name;
+        });
 
     nodesEl.exit()
         .transition()
@@ -525,9 +531,9 @@ function start(filter) {
     force.start();
 }
 
-function updateNodes(compare) {
+function updateNodes(comparing) {
     nodesEl.classed('backgroundCircle', function(d) {
-        if(compare) {
+        if(comparing) {
             return false;
         }
         else {
@@ -564,16 +570,27 @@ function updateData() {
     $('.filterList p').each(function(i){
         var text = $(this).attr('data-name'),
             padre = $(this).attr('data-padre'),
-            el = dropdown.get(padre),
-            child = $(el).children()[0],
-            catName = $(child).text().toLowerCase();
+            tempFilter =  null;
+        //keyword
+        if(padre === '999') {
+            tempFilter = {
+                category: 'keyword',
+                name: text
+            };
+        }
+        else {
+          var el = dropdown.get(padre),
+                child = $(el).children()[0],
+                catName = $(child).text().toLowerCase();
 
             tempFilter = {
                 category: catName,
                 name: text
             };
-            currentFilters.push(tempFilter);
-            //nodesData.push({focus: 1, len: sub.length, label: true, name: sub});
+        }
+            
+        currentFilters.push(tempFilter);
+        //nodesData.push({focus: 1, len: sub.length, label: true, name: sub});
     });
 
     updateLabels();
@@ -585,15 +602,31 @@ function updateData() {
                 o.focus = 1;
                 for(var a = 0; a < currentFilters.length; a++) {
                     // console.log(users[o.user_id][0][currentFilters[a].category], currentFilters[a].name);
-                    if(users[o.user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
-                        o.focus = 2;
-                        continue;
+                    if(currentFilters[a].category === 'keyword') {
+                        var tokenExists = false;
+                        for(var t = 0; t < o.tokens.length; t++) {
+                            if(o.tokens[t] === currentFilters[a].name) {
+                                tokenExists = true;
+                                o.focus = 1;
+                                continue;
+                            }
+                        }
+                        if(!tokenExists) {
+                            o.focus = 2;
+                        }
+                    }
+                    else {
+                        if(users[o.user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
+                            o.focus = 2;
+                            continue;
+                        }
                     }
                 }
             }
         });
     }
     else {
+        $('.formShape').css('opacity', 1);
         foci = 1;
         nodesData.forEach(function(o,i) {
             o.focus = 1;
@@ -629,73 +662,118 @@ function compareAll(sibs, categoryName) {
         force.start();
 }
 
-//when a filter is selected, we must figure out a lot of things,
-//like what were the filters before, what should they be, etc.
-function selectFilter(selection) {
-    var padre = $(selection).parentsUntil('.filters'),
-            curDrop = $(padre[2]).children(),
-            index = $(padre[2]).index('.wrapper-dropdown'),
-            text = $(selection).text().toLowerCase();
+function selectSearch(selection) {
+    $('.formShape').css({
+        opacity: 0.3,
+        'background-position': '0px'
+    });
+    hideText();
+    var text = $('.searchField').val(),
             displayText = '{' + text + '}',
-            catName = $(curDrop[0]).text().toLowerCase(),
-            compare = false,
-            html = null,
-            sibs = null;
-        
-        //if (compare all), remove all filters
-        if(text === 'compare all') {
-            compare = true;
-            removeAllFilters();
-            var par = $(selection).parent();
-            sibs = par.siblings();
-            var numSibs = sibs.length;
+            html = '<p data-compare="0" data-padre=999 data-name="' + text + '">' + displayText + '</p>';
 
-            foci = numSibs;
-            html = '<p data-compare="1" data-padre=' + index +'>' + displayText + '</p>';
-        }
-        else {
-            html = '<p data-compare="0" data-name="' + text + '" data-padre=' + index +'>' + displayText + '</p>';
-        }
-
-        var found = false;
-        //if there is a compare all, we should remove it
         //go thru each filter, check it data-padre matches index
         $('.filterList p').each(function(i) {
             var old = parseInt($(this).attr('data-padre'),10),
                 isCompare = parseInt($(this).attr('data-compare'), 10);
-
+            if(old === 999) {
+                $(this).remove();
+            }
+            else if(isCompare === 1) {
             //if there was pre-existing compare all, remove it.
-            if(isCompare === 1) {
                 $(this).remove();
                 resetMenuColor(this);
-            }
-
-            //replace the text if it is the same category AND not a compare all
-            else if(old === index) {
-                $(this).text(displayText);
-                found = true;
-                return true;
             }
         });
 
         //add a new one if the the category is not in filters
-        if(!found) {
-            $(curDrop[0]).addClass('activeFilter');
+        filterList.append(html);
 
-            filterList.append(html);
-            //delete filter on click
-            $('.filterList p').bind('click', function() {
-                $(this).remove();
-                resetMenuColor(this);
-                updateData();
-            });
-        }
-        if(!compare) {
+        //delete filter on click
+        $('.filterList p').bind('click', function() {
+            //remove from filter list
+            $(this).remove();
             updateData();
+        });
+
+        $('.searchField').val('');
+        updateData();
+}
+
+//when a filter is selected, we must figure out a lot of things,
+//like what were the filters before, what should they be, etc.
+
+function selectFilter(selection) {
+    hideText();
+    $('.formShape').css({
+        opacity: 0.3,
+        'background-position': '0px'
+    });
+    var padre = $(selection).parentsUntil('.filters'),
+        curDrop = $(padre[2]).children(),
+        index = $(padre[2]).index('.wrapper-dropdown'),
+        text = $(selection).text().toLowerCase();
+        displayText = '{' + text + '}',
+        catName = $(curDrop[0]).text().toLowerCase(),
+        html = null,
+        sibs = null;
+
+    compare = false;
+        
+    //if (compare all), remove all filters
+    if(text === 'compare all') {
+        compare = true;
+        removeAllFilters();
+        var par = $(selection).parent();
+        sibs = par.siblings();
+        var numSibs = sibs.length;
+
+        foci = numSibs;
+        html = '<p data-compare="1" data-padre=' + index +'>' + displayText + '</p>';
+    }
+    else {
+        html = '<p data-compare="0" data-name="' + text + '" data-padre=' + index +'>' + displayText + '</p>';
+    }
+
+    var found = false;
+    //if there is a compare all, we should remove it
+    //go thru each filter, check it data-padre matches index
+    $('.filterList p').each(function(i) {
+        var old = parseInt($(this).attr('data-padre'),10),
+            isCompare = parseInt($(this).attr('data-compare'), 10);
+
+        //if there was pre-existing compare all, remove it.
+        if(isCompare === 1) {
+            $(this).remove();
+            resetMenuColor(this);
         }
-        else {
-            compareAll(sibs, catName);
+
+        //replace the text if it is the same category AND not a compare all
+        else if(old === index) {
+            $(this).text(displayText);
+            found = true;
+            return true;
         }
+    });
+
+    //add a new one if the the category is not in filters
+    if(!found) {
+        $(curDrop[0]).addClass('activeFilter');
+
+        filterList.append(html);
+        //delete filter on click
+        $('.filterList p').bind('click', function() {
+            $(this).remove();
+            resetMenuColor(this);
+            updateData();
+        });
+    }
+    if(!compare) {
+        updateData();
+    }
+    else {
+        compareAll(sibs, catName);
+    }
 }
 
 //remove the labels from the bottom
@@ -728,7 +806,6 @@ function updateLabels() {
     var len = currentFilters.length,
         interval = 60,
         topStart = centerY - ((interval * len) / 2);
-
 
     //go thru and push all the new ones
     for(var i = 0; i < len; i++) {
@@ -774,10 +851,7 @@ function changeChallenge(cur) {
     start();
 }
 
-function filterKeyword(word) {
-
-}
-function getKeywords(input) {
+function getTokens(input) {
     results = [],
     split = input.replace(/[^a-zA-Z ]+/g, '')
             .replace('/ {2,}/',' ')
