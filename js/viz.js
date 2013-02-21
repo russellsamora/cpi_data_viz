@@ -32,7 +32,7 @@ var currentInfo = null,
     maxPopular = 0,
     radiusScale = null,
     minRadius = 8,
-    maxMaxRadius = 40,
+    maxMaxRadius = 80,
     resizeTimer = null,
     challenges = null,
     users = null,
@@ -44,11 +44,15 @@ var currentInfo = null,
     wordCloudWords = null,
     wordColorScale = null,
     wordSizeScale = null,
-    wordLimit = 50,
+    wordLimit = 150,
     smallWord = 16,
     bigWord = 30,
     bubbleViz = null,
-    vizMode = 0;
+    vizMode = 0,
+    maxSent = 0,
+    minSent = 0,
+    aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(190,190,190)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'];
+
 
 $(function() {
 
@@ -170,7 +174,7 @@ $(function() {
 
     //word cloud button click
      $('.wordCloud').bind('click', function() {
-        console.log(challengeShowing, vizMode);
+        
         if(challengeShowing) {
             //nodes
             if(vizMode === 0) {
@@ -228,8 +232,7 @@ function resizeEnd() {
     //change size and positions of circles
     viz.selectAll('circle')
         .attr('r', function(d,i) {
-            var sz = radiusScale(d.likes_num);
-            return sz;
+            return radiusScale(d.popular);
         });
     //start up the movement again
     recharge();
@@ -295,21 +298,21 @@ function setPropertiesFromData() {
     bigData.forEach(function(o,i) {
         o.focus = 1;
         o.tokens = getTokens(o.response);
+        o.score = parseFloat(o.score);
+        o.comparative = parseFloat(o.comparative);
+        o.comments_num = parseInt(o.comments_num, 10);
+        o.likes_num = parseInt(o.likes_num, 10);
+        o.popular = o.comments_num + o.likes_num;
     });
-    maxLikes = d3.max(bigData, function(d,i) {
-        var num = parseInt(d.likes_num, 10);
-        return num;
+    // maxLikes = d3.max(bigData, function(d,i) {
+    //     var num = parseInt(d.likes_num, 10);
+    //     return num;
 
-    });
-    maxComments = d3.max(bigData, function(d,i) {
-        var num = parseInt(d.comments_num, 10);
-        return num;
-    });
-    maxPopular = d3.max(bigData, function(d,i) {
-        var num = parseInt(d.comments_num, 10) + parseInt(d.likes_num, 10);
-        return num;
-    });
-
+    // });
+    // maxComments = d3.max(bigData, function(d,i) {
+    //     var num = parseInt(d.comments_num, 10);
+    //     return num;
+    // });
     nestedData = d3.nest()
         .key(function(d) {
             return d.challenge_id;
@@ -392,14 +395,14 @@ function setupCloud() {
     var minFreq = wordCloudWords[wordCloudWords.length - 1].frequency,
         maxFreq = wordCloudWords[0].frequency;
 
-    wordColorScale = d3.scale.quantize().domain([0,1]).range(colorbrewer.GnBu[7]);
+    wordColorScale = d3.scale.quantize().domain([0,1]).range(aidan);
     wordSizeScale = d3.scale.linear().domain([minFreq,maxFreq]).range([smallWord,bigWord]);
     d3.layout.cloud().size([width, height])
       .words(wordCloudWords.map(function(d) {
         var sz = wordSizeScale(d.frequency);
         return {text: d.text, size: sz};
       }))
-      // .rotate(function() { return ~~(Math.random() * 2) * 90; })
+      .rotate(function() { return 0; })
       // .font('Impact')
       .fontSize(function(d) { return d.size; })
       .on('end', draw)
@@ -533,17 +536,16 @@ function start(filter) {
                 //based the size on the number of letters
                 return d.len;
             }
-            var sz = radiusScale(d.likes_num);
-            return sz;
+            return radiusScale(d.popular);
             // return radiusScale((d.comments_num + d.likes_num));
         })
         .style('fill', function(d,i) {
-            var s = colorScale(parseInt(d.comparative,10));
-            //console.log(d.comparative,s);
+            // var s = colorScale(parseInt(d.comparative,10));
+            var s = d.score;
             if(d.label === true) {
                 return 'rgba(0,0,0,0)';
             }
-            return colorScale(d.comparative);
+            return colorScale(s);
         })
         .call(force.drag)
         .on('click', showText);
@@ -575,16 +577,17 @@ function start(filter) {
                 //based the size on the number of letters
                 return d.len;
             }
-            var sz = radiusScale(d.likes_num);
-            return sz;
+            return radiusScale(d.popular);
         })
          .style('fill', function(d,i) {
-            var s = colorScale(parseInt(d.comparative,10));
+            // var s = colorScale(parseInt(d.comparative,10));
+            var s = d.score;
+
             //console.log(d.comparative,s);
             if(d.label === true) {
                 return 'rgba(0,0,0,0)';
             }
-            return colorScale(d.comparative);
+            return colorScale(s);
         });
     d3.selectAll('.label')
         .select('text')
@@ -622,15 +625,14 @@ function updateNodes(comparing) {
 function setScales() {
     //scale down the size of the circles based on the screen dimensions and max # comments
     // var max = (Math.floor(height * 0.04)) > maxMaxRadius ? maxMaxRadius : max;
-    var val = Math.floor(height * 0.03);
+    var frac = (1 / challengeData.length);
+    var val = Math.floor(height * frac);
     var max = val > maxMaxRadius ? maxMaxRadius : val;
     var maxRadius =  max > (minRadius * 2) ? max : (minRadius * 2);
-
-    radiusScale = d3.scale.linear().domain([0,maxLikes]).range([minRadius,maxRadius]);
+    console.log(maxRadius);
+    radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
     //radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
-    //PiYG
-    // colorScale = d3.scale.ordinal().domain([0,maxLikes]).range(colorbrewer.GnBu[7]);
-    colorScale = d3.scale.quantize().domain([-2,2]).range(colorbrewer.GnBu[7]);
+    colorScale = d3.scale.quantize().domain([minSent, maxSent]).range(aidan);
 
     bigWord = Math.floor(width / 20);
 }
@@ -897,7 +899,7 @@ function recharge() {
         if(d.label) {
             return -Math.pow(d.len, 2.0) * 6;
         }
-        var sz = radiusScale(d.likes_num);
+        var sz = radiusScale(d.popular);
         return -Math.pow(sz, 2.0) / 2.0;
     })
     .friction([0.9])
@@ -906,7 +908,7 @@ function recharge() {
 
 function changeChallenge(cur) {
     challengeShowing = true;
-    $('.wordCloud').css('opacity', 1);
+    $('.tool').css('opacity', 1);
     hideText();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     $('.challengeQuestion').text(challenges[cur].challenge_question);
@@ -918,6 +920,7 @@ function changeChallenge(cur) {
     challengeData = nestedData[challengeId];
 
     nodesData = challengeData;
+    getMaxMin();
     updateData();
 
     force.nodes(nodesData);
@@ -970,4 +973,19 @@ function getWords() {
         setupCloud();
     });
     
+}
+function getMaxMin() {
+    maxPopular = d3.max(challengeData, function(d,i) {
+        return d.popular;
+    });
+    maxSent = d3.max(challengeData, function(d,i) {
+        var num = parseInt(d.score, 10);
+        return num;
+    });
+    minSent = d3.min(challengeData, function(d,i) {
+        var num = parseInt(d.score, 10);
+        return num;
+    });
+    console.log(maxPopular, maxSent, minSent);
+    setScales();
 }

@@ -4,7 +4,7 @@ function sortedWords(input, callback) {
 	var iWordsCount = sWords.length; // count w/ duplicates
 
 	// array of words to ignore
-	var ignore = ['and','the','to','a','of','for','as','i','with','it','is','on','that','this','can','in','be','has','if'];
+var ignore = ["for","with","from","about","into","over","after","beneath","under","above","the","and","that","have","not","with","she","you","this","but","his","they","say","her","because","will","their","who","get","which","when","make","can","just","him","your","it's","has","also","too","where","don't","i'm","how","was","are","what","see","would","should","like","these","those","their","out","them","ther","all","explain","response","comment","doing","going","could","any","know","our","there's","it's","than","other","through","doesn't","what's","etc","there","were","its","haven't","one"];
 	
 	ignore = (function(){
 		var o = {}; // object prop checking > in array checking
@@ -18,7 +18,7 @@ function sortedWords(input, callback) {
 	var counts = {}; // object for math
 	for (var i=0; i<iWordsCount; i++) {
 		var sWord = sWords[i];
-		if (!ignore[sWord]) {
+		if (!ignore[sWord] && sWord.length > 2) {
 			counts[sWord] = counts[sWord] || 0;
 			counts[sWord]++;
 		}

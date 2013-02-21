@@ -90,8 +90,8 @@ svg {
     height: 38px;
     /*background: #4EA3BE;*/
     background: #888;
-    /*background: #1884A8;
-    background: #ADCC8C;*/
+    /*background: #1884A8;*/
+    /*background: #ADCC8C;*/
     z-index: 50;
     /*-moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
     -webkit-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
@@ -107,7 +107,7 @@ svg {
     position: relative;
     /*background: #1884A8;*/
     background: #81A965;
-    /*background: #555;*/
+    /*background: #888;*/
     color: #fff;
     z-index: 51;
     /*-moz-box-shadow: 0 1px 2px 1px rgba(0,0,0,.3);
@@ -268,21 +268,25 @@ input[type=text] {
     width: 40px;
     height: 40px;
     position: absolute;
-    border: 4px solid #ed3e69;
+    border: solid #1884A8;
     border-radius: 10px;
     z-index: 2;
     top: 130px;
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
-    background: #ed3e69 url(../img/form.png);
+    background: #1884A8 url(../img/form.png);
+}
+.formShape:hover {
+    border-color: #555;
+    border-color: rgba(20,20,20,0.5);
 }
 .wordCloud {
     width: 40px;
     height: 40px;
     position: absolute;
-    border: 4px solid #ed3e69;
-    background: #ed3e69;
+    border: solid #1884A8;
+    background: #1884A8;
     border-radius: 10px;
     z-index: 2;
     top: 190px;
@@ -290,10 +294,40 @@ input[type=text] {
     cursor: pointer;
     opacity: 0.3;
 }
+.wordCloud:hover {
+    border-color: #555;
+    border-color: rgba(20,20,20,0.5);
+}
 .wordCloud p {
     text-align: center;
     color: #fff;
     font-size: 1.8em;
+}
+.stats {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    border: solid #1884A8;
+    border-radius: 10px;
+    z-index: 2;
+    top: 250px;
+    right: 10px;
+    cursor: pointer;
+    opacity: 0.3;
+    background: #1884A8 url(../img/stats.png);
+}
+.demographics {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    border: solid #1884A8;
+    border-radius: 10px;
+    z-index: 2;
+    top: 310px;
+    right: 10px;
+    cursor: pointer;
+    opacity: 0.3;
+    background: #1884A8 url(../img/demo.png);
 }
 .helpButton {
     width: 48px;
@@ -305,7 +339,7 @@ input[type=text] {
     right: 10px;
     color: #fff;
     border-radius: 10px;
-    background:#ed3e69;
+    background:#1884A8;
     z-index: 9996;
     cursor: pointer;
 }
@@ -405,22 +439,23 @@ input[type=text] {
     border-radius: 5px;
     width: 640px;
     padding: 10px;
-    background: #1884A8;
-    border: 4px solid #0F5167;
+    background: rgb(235, 236, 215);
+    border: 4px solid rgb(200,200,200);
     color: #eee;
     margin: 0 auto;
 }
 .displayInfo p {
     padding: 10px;
-    color: #fff;
+    margin-bottom: 20px;
+    color: #222;
 }
 .displayInfo .viewComments {
     text-align: center;
     margin: 0 auto;
     padding: 5px;
     border-radius: 10px;
-    background: #70CCEB;
-    color: #09313E;
+    background: #EA446A;
+    color: #fff;
     width: 120px;
     cursor: pointer;
 }
@@ -534,5 +569,6 @@ h2.currentViz {
     cursor:url(../img/remove.png) 16 16,default;
 }
 .wordFont {
-    font-family: 'vinyl', sans-serif;
+    font-family: 'Impact', sans-serif;
+    font-weight: 700;
 }
