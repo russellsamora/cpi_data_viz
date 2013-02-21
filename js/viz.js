@@ -40,7 +40,15 @@ var currentInfo = null,
     challengeShowing = false,
     drumLine = false,
     selectedCircle = null,
-    compare = false;
+    compare = false,
+    wordCloudWords = null,
+    wordColorScale = null,
+    wordSizeScale = null,
+    wordLimit = 50,
+    smallWord = 16,
+    bigWord = 30,
+    bubbleViz = null,
+    vizMode = 0;
 
 $(function() {
 
@@ -159,6 +167,30 @@ $(function() {
             force.start();
         }
     });
+
+    //word cloud button click
+     $('.wordCloud').bind('click', function() {
+        console.log(challengeShowing, vizMode);
+        if(challengeShowing) {
+            //nodes
+            if(vizMode === 0) {
+                $('.bubbles').fadeOut();
+                getWords();
+                vizMode = 1;
+                $('.wordCloud p').text('B');
+            }
+            //words
+            else {
+                $('.cloud').fadeOut(function() {
+                    $('.bubbles').fadeIn();
+                    $(this).remove();
+                });
+                vizMode = 0;
+                $('.wordCloud p').text('W');
+            }
+            
+        }
+    });
     //begin
     init();
 });
@@ -208,8 +240,9 @@ function init() {
     //setup d3
     
     viz = d3.select('.wrapper').append('svg');
+    bubbleViz = viz.append('g').classed('bubbles', true);
     nodesData = [];
-    nodesEl = viz.selectAll('.node');
+    nodesEl = bubbleViz.selectAll('.node');
     resize(true);
     setupForce();
     d3.csv('/data/output219.csv',function(csv) {
@@ -355,6 +388,43 @@ function setupForce() {
     recharge();
 }
 
+function setupCloud() {
+    var minFreq = wordCloudWords[wordCloudWords.length - 1].frequency,
+        maxFreq = wordCloudWords[0].frequency;
+
+    wordColorScale = d3.scale.quantize().domain([0,1]).range(colorbrewer.GnBu[7]);
+    wordSizeScale = d3.scale.linear().domain([minFreq,maxFreq]).range([smallWord,bigWord]);
+    d3.layout.cloud().size([width, height])
+      .words(wordCloudWords.map(function(d) {
+        var sz = wordSizeScale(d.frequency);
+        return {text: d.text, size: sz};
+      }))
+      // .rotate(function() { return ~~(Math.random() * 2) * 90; })
+      // .font('Impact')
+      .fontSize(function(d) { return d.size; })
+      .on('end', draw)
+      .start();
+}
+
+function draw(words) {
+    viz.append('g')
+        .classed('cloud', true)
+        .attr('transform', 'translate(' + centerX + ',' + centerY + ')')
+        .selectAll('text')
+        .data(words)
+        .enter().append('text')
+        .style('font-size', function(d) { return d.size + 'px'; })
+        .classed('wordFont', true)
+        .style('fill', function(d) {
+            var col = wordColorScale(Math.random());
+            return col;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('transform', function(d) {
+          return 'translate(' + [d.x, d.y] + ')rotate(' + d.rotate + ')';
+        })
+        .text(function(d) { return d.text; });
+}
 function moveToCenter(alph) {
     
     return function(d, i) {
@@ -561,6 +631,8 @@ function setScales() {
     //PiYG
     // colorScale = d3.scale.ordinal().domain([0,maxLikes]).range(colorbrewer.GnBu[7]);
     colorScale = d3.scale.quantize().domain([-2,2]).range(colorbrewer.GnBu[7]);
+
+    bigWord = Math.floor(width / 20);
 }
 function updateData() {
     
@@ -834,6 +906,7 @@ function recharge() {
 
 function changeChallenge(cur) {
     challengeShowing = true;
+    $('.wordCloud').css('opacity', 1);
     hideText();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     $('.challengeQuestion').text(challenges[cur].challenge_question);
@@ -878,4 +951,23 @@ function resetMenuColor(item) {
     var index = $(item).attr('data-padre'),
                     el = dropdown.get(index);
                 $(el).children().removeClass('activeFilter');
+}
+
+function getWords() {
+    var words = [];
+    nodesData.forEach(function(o) {
+        if(!o.label) {
+            for(var t = 0; t < o.tokens.length; t++) {
+                words.push(o.tokens[t]);
+            }
+        }
+    });
+    sortedWords(words, function(result) {
+        wordCloudWords = result;
+        if(wordCloudWords.length > wordLimit) {
+            wordCloudWords = wordCloudWords.slice(0,wordLimit);
+        }
+        setupCloud();
+    });
+    
 }
