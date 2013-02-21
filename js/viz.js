@@ -148,7 +148,6 @@ $(function() {
 
     //form shape click
     $('.formShape').bind('click', function() {
-        console.log(compare, currentFilters.length);
         if(currentFilters.length === 0 && !compare && challengeShowing) {
             drumLine = !drumLine;
             if(drumLine) {
@@ -213,12 +212,12 @@ function init() {
     nodesEl = viz.selectAll('.node');
     resize(true);
     setupForce();
-    d3.csv('../data/output219.csv',function(csv) {
+    d3.csv('/data/output219.csv',function(csv) {
         bigData = csv;
         setPropertiesFromData();
     })
     .on('error', function(e) {
-        console.log(e);
+        console.log('messed up: ', e);
     });
 }
 
@@ -290,7 +289,7 @@ function setPropertiesFromData() {
 
 function loadUsersAndChallenges() {
     //load demographic user info
-    d3.csv('../data/users.csv',function(csv_users) {
+    d3.csv('/data/users.csv',function(csv_users) {
         //refine user data (ie. changing birth year to age range etc.)
         var refinedUsers = refineUsers(csv_users);
         users = d3.nest()
@@ -300,7 +299,7 @@ function loadUsersAndChallenges() {
         .map(refinedUsers);
 
         //load challenge info
-        d3.csv('../data/challenges.csv',function(csv_challenges) {
+        d3.csv('/data/challenges.csv',function(csv_challenges) {
             challenges = csv_challenges;
             
             populateChallenges();
@@ -626,6 +625,7 @@ function updateData() {
         });
     }
     else {
+        compare = false;
         $('.formShape').css('opacity', 1);
         foci = 1;
         nodesData.forEach(function(o,i) {
