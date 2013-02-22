@@ -8,20 +8,24 @@ var ignore = ["for","with","from","about","into","over","after","beneath","under
 	
 	ignore = (function(){
 		var o = {}; // object prop checking > in array checking
-		var iCount = ignore.length;
-		for (var i=0;i<iCount;i++){
+		var iCount = ignore.length,
+			i = 0;
+		while(i < iCount) {
 			o[ignore[i]] = true;
+			i++;
 		}
 		return o;
 	}());
 
-	var counts = {}; // object for math
-	for (var i=0; i<iWordsCount; i++) {
+	var counts = {},
+		i = 0;
+	while(i < iWordsCount) {
 		var sWord = sWords[i];
 		if (!ignore[sWord] && sWord.length > 2) {
 			counts[sWord] = counts[sWord] || 0;
 			counts[sWord]++;
 		}
+		i++;
 	}
 
 	var arr = []; // an array of objects to return

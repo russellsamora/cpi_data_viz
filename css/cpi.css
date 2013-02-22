@@ -264,61 +264,55 @@ input[type=text] {
     fill: rgba(219, 222, 239,.5);
 }
 
-.formShape {
+.bubbleMode {
     width: 40px;
     height: 40px;
     position: absolute;
-    border: solid #1884A8;
+    border: solid 4px #555;
     border-radius: 10px;
     z-index: 2;
     top: 130px;
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
-    background: #1884A8 url(../img/form.png);
+    background: #555 url(../img/bubbleMode.png);
 }
-.formShape:hover {
-    border-color: #555;
-    border-color: rgba(20,20,20,0.5);
-}
-.wordCloud {
+.cloudMode {
     width: 40px;
     height: 40px;
     position: absolute;
-    border: solid #1884A8;
-    background: #1884A8;
+    border: solid 4px #555;
     border-radius: 10px;
     z-index: 2;
     top: 190px;
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
+    background: #555 url(../img/cloudMode.png);
 }
-.wordCloud:hover {
-    border-color: #555;
-    border-color: rgba(20,20,20,0.5);
-}
-.wordCloud p {
-    text-align: center;
-    color: #fff;
-    font-size: 1.8em;
-}
-.stats {
+.demographicMode {
     width: 40px;
     height: 40px;
     position: absolute;
-    border: solid #1884A8;
+    border: solid 4px #555;
     border-radius: 10px;
     z-index: 2;
     top: 250px;
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
-    background: #1884A8 url(../img/stats.png);
+    background: #555 url(../img/demographicMode.png);
 }
-.demographics {
-    width: 40px;
-    height: 40px;
+.tool:hover {
+    border-color: #1884A8;
+}
+.currentMode {
+    background-color: #1884A8;
+    border-color: #1884A8;
+}
+.stats {
+    width: 24px;
+    height: 24px;
     position: absolute;
     border: solid #1884A8;
     border-radius: 10px;
@@ -327,7 +321,20 @@ input[type=text] {
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
-    background: #1884A8 url(../img/demo.png);
+    background: #1884A8;
+}
+.formShape {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    border: solid #1884A8;
+    border-radius: 10px;
+    z-index: 2;
+    top: 370px;
+    right: 10px;
+    cursor: pointer;
+    opacity: 0.3;
+    /*background: #1884A8 url(../img/demo.png);*/
 }
 .helpButton {
     width: 48px;
@@ -569,6 +576,5 @@ h2.currentViz {
     cursor:url(../img/remove.png) 16 16,default;
 }
 .wordFont {
-    font-family: 'Impact', sans-serif;
-    font-weight: 700;
+    font-family: 'Chau Philomene One', sans-serif;
 }

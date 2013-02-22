@@ -9,6 +9,8 @@
         <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
         <meta name='description' content='Data Visualization to Community PlanIt'/>
         <link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Chau+Philomene+One' rel='stylesheet' type='text/css'>
+
         <link rel='stylesheet' href='css/cpi.css' type='text/css'/>
 
         <script src='js/jquery-1.9.0.js'></script>
@@ -21,9 +23,6 @@
         <nav>
             <div class = 'navigation'>
                 <h2>Community PlanIt: Recap Visualization</h2>
-                <h2 class = 'currentViz'>[1]</h2>
-                <h2>[2]</h2>
-                <h2>[3]</h2>
                 <ul>
                     <li><a href='http://communityplanit.org'>Home</a></li>
                     <li><a href='http://communityplanit.org/all'>All Games</a></li>
@@ -146,10 +145,13 @@
         </div>
         <div class = 'filterList'>
         </div>
-        <div class = 'formShape tool'></div>
-        <div class = 'wordCloud tool'><p>W</p></div>
-        <div class = 'stats tool'></div>
-        <div class = 'demographics tool'></div>
+        
+        <div class = 'bubbleMode tool currentMode'></div>
+        <div class = 'cloudMode tool'></div>
+        <div class = 'demographicMode tool'></div>
+        
+       <!--  <div class = 'formShape tool'></div>
+        <div class = 'stats tool'></div> -->
         <p class='helpButton'>?</p>
         <div class='helpArea'>
             <div class = 'content'>

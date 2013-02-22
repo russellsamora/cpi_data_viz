@@ -163,36 +163,47 @@ $(function() {
         if(currentFilters.length === 0 && !compare && challengeShowing) {
             drumLine = !drumLine;
             if(drumLine) {
-                $(this).css('background-position', '-32px');
+                $(this).css('background-position', '0px');
             }
             else {
-                $(this).css('background-position', '0px');
+                $(this).css('background-position', '-32px');
             }
             force.start();
         }
     });
 
-    //word cloud button click
-     $('.wordCloud').bind('click', function() {
-        
-        if(challengeShowing) {
-            //nodes
-            if(vizMode === 0) {
-                $('.bubbles').fadeOut();
+    //tool button click
+    $('.bubbleMode').bind('click', function() {
+        if(challengeShowing && vizMode !== 0) {
+            $('.demographics').fadeOut();
+            $('.cloud').fadeOut(function() {
+                $('.bubbles').fadeIn();
+            });
+            vizMode = 0;
+            $('.tool').removeClass('currentMode');
+            $(this).addClass('currentMode');
+        }
+    });
+    $('.cloudMode').bind('click', function() {
+        if(challengeShowing && vizMode !== 1) {
+            $('.demographics').fadeOut();
+            $('.bubbles').fadeOut(function() {
                 getWords();
-                vizMode = 1;
-                $('.wordCloud p').text('B');
-            }
-            //words
-            else {
-                $('.cloud').fadeOut(function() {
-                    $('.bubbles').fadeIn();
-                    $(this).remove();
-                });
-                vizMode = 0;
-                $('.wordCloud p').text('W');
-            }
-            
+            });
+            vizMode = 1;
+            $('.tool').removeClass('currentMode');
+            $(this).addClass('currentMode');
+        }
+    });
+    $('.demographicMode').bind('click', function() {
+        if(challengeShowing && vizMode !== 2) {
+            $('.cloud').fadeOut();
+            $('.bubbles').fadeOut(function() {
+                $('.demographics').fadeIn();
+            });
+            vizMode = 2;
+            $('.tool').removeClass('currentMode');
+            $(this).addClass('currentMode');
         }
     });
     //begin
@@ -259,66 +270,64 @@ function init() {
 
 function refineUsers(firstUsers) {
     //go thru each user and refine stuff (ie. change age year to age group)
-    firstUsers.forEach(function(o,i) {
+    var usersL = firstUsers.length,
+        i = 0;
 
+    while(i < usersL) {
         //tolowercase for bad data....
-        var lower = o.gender.toLowerCase();
-        o.gender = lower;
+        var lower = firstUsers[i].gender.toLowerCase();
+        firstUsers[i].gender = lower;
 
         //check if there IS a age year
-        if(o.age.length > 0) {
+        if(firstUsers[i].age.length > 0) {
             /** THIS WILL BE THE CASE WHEN ITS DATES SON **/
-            var age = 2013 - parseInt(o.age,10);
+            var age = 2013 - parseInt(firstUsers[i].age,10);
 
             if(age < 18) {
-                o.age = 'less than 18';
+                firstUsers[i].age = 'less than 18';
             }
             else if(age < 31) {
-                o.age = '18-30';
+                firstUsers[i].age = '18-30';
             }
             else if(age < 41) {
-                o.age = '31-40';
+                firstUsers[i].age = '31-40';
             }
             else if(age < 51) {
-                o.age = '41-50';
+                firstUsers[i].age = '41-50';
             }
             else {
-                o.age = 'over 50';
+                firstUsers[i].age = 'over 50';
             }
         }
         else {
             //unspecified
-            o.age = 'unspecified';
+            firstUsers[i].age = 'unspecified';
         }
-    });
+
+        i++;
+    }
     return firstUsers;
 }
 
 function setPropertiesFromData() {
-    bigData.forEach(function(o,i) {
-        o.focus = 1;
-        o.tokens = getTokens(o.response);
-        o.score = parseFloat(o.score);
-        o.comparative = parseFloat(o.comparative);
-        o.comments_num = parseInt(o.comments_num, 10);
-        o.likes_num = parseInt(o.likes_num, 10);
-        o.popular = o.comments_num + o.likes_num;
-    });
-    // maxLikes = d3.max(bigData, function(d,i) {
-    //     var num = parseInt(d.likes_num, 10);
-    //     return num;
+    var bigL = bigData.length,
+        i = 0;
 
-    // });
-    // maxComments = d3.max(bigData, function(d,i) {
-    //     var num = parseInt(d.comments_num, 10);
-    //     return num;
-    // });
+    while(i < bigL) {
+        bigData[i].focus = 1;
+        bigData[i].tokens = getTokens(bigData[i].response);
+        bigData[i].score = parseFloat(bigData[i].score);
+        bigData[i].comparative = parseFloat(bigData[i].comparative);
+        bigData[i].comments_num = parseInt(bigData[i].comments_num, 10);
+        bigData[i].likes_num = parseInt(bigData[i].likes_num, 10);
+        bigData[i].popular = bigData[i].comments_num + bigData[i].likes_num;
+        i++;
+    }
     nestedData = d3.nest()
         .key(function(d) {
             return d.challenge_id;
         })
         .map(bigData);
-
     loadUsersAndChallenges();
     setScales();
 }
@@ -405,6 +414,9 @@ function setupCloud() {
       .rotate(function() { return 0; })
       // .font('Impact')
       .fontSize(function(d) { return d.size; })
+      .padding(function(d) {
+        return d.frequency * 2;
+      })
       .on('end', draw)
       .start();
 }
@@ -564,7 +576,14 @@ function start(filter) {
         .on('mouseover', highlightText)
         .on('mouseout', regularText)
         .attr('dy', '.3em')
-        .style('text-anchor', 'middle');
+        .style('text-anchor', 'middle')
+        .style('fill', function(d) {
+            //make it a different color
+            if(d.user_id === 'keyword') {
+                return '#1884A8';
+            }
+            return '#222';
+        });
 
 
     //update
@@ -629,7 +648,6 @@ function setScales() {
     var val = Math.floor(height * frac);
     var max = val > maxMaxRadius ? maxMaxRadius : val;
     var maxRadius =  max > (minRadius * 2) ? max : (minRadius * 2);
-    console.log(maxRadius);
     radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
     //radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
     colorScale = d3.scale.quantize().domain([minSent, maxSent]).range(aidan);
@@ -667,44 +685,47 @@ function updateData() {
     });
 
     updateLabels();
+    var nodesL = nodesData.length,
+        i = 0;
     if(currentFilters.length > 0) {
         foci = 2;
-        
-        nodesData.forEach(function(o,i) {
-            if(!o.label) {
-                o.focus = 1;
+        while(i < nodesL) {
+           if(!nodesData[i].label) {
+                nodesData[i].focus = 1;
                 for(var a = 0; a < currentFilters.length; a++) {
-                    // console.log(users[o.user_id][0][currentFilters[a].category], currentFilters[a].name);
+                    // console.log(users[nodesData[i].user_id][0][currentFilters[a].category], currentFilters[a].name);
                     if(currentFilters[a].category === 'keyword') {
                         var tokenExists = false;
-                        for(var t = 0; t < o.tokens.length; t++) {
-                            if(o.tokens[t] === currentFilters[a].name) {
+                        for(var t = 0; t < nodesData[i].tokens.length; t++) {
+                            if(nodesData[i].tokens[t] === currentFilters[a].name) {
                                 tokenExists = true;
-                                o.focus = 1;
+                                nodesData[i].focus = 1;
                                 continue;
                             }
                         }
                         if(!tokenExists) {
-                            o.focus = 2;
+                            nodesData[i].focus = 2;
                         }
                     }
                     else {
-                        if(users[o.user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
-                            o.focus = 2;
+                        if(users[nodesData[i].user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
+                            nodesData[i].focus = 2;
                             continue;
                         }
                     }
                 }
             }
-        });
+            i++;
+        }
     }
     else {
         compare = false;
         $('.formShape').css('opacity', 1);
         foci = 1;
-        nodesData.forEach(function(o,i) {
-            o.focus = 1;
-        });
+        while(i < nodesL) {
+            nodesData[i].focus = 1;
+            i++;
+        }
     }
     setTimeout(updateNodes,17);
     start();
@@ -718,20 +739,20 @@ function compareAll(sibs, categoryName) {
         });
         
         compareLabels(filterValues);
-
-        nodesData.forEach(function(o,i) {
-            if(!o.label) {
+        var nodesL = nodesData.length,
+            i = 0;
+        while(i < nodesL) {
+            if(!nodesData[i].label) {
                 for(var a = 0; a < filterValues.length; a++) {
-                //console.log(users[o.user_id][0][categoryName], filterValues[a]);
-                    if(users[o.user_id][0][categoryName] === filterValues[a]) {
-                        o.focus = (a + 1);
+                //console.log(users[nodesData[i].user_id][0][categoryName], filterValues[a]);
+                    if(users[nodesData[i].user_id][0][categoryName] === filterValues[a]) {
+                        nodesData[i].focus = (a + 1);
                         continue;
                     }
                 }
             }
-            
-        });
-
+            i++;
+        }
         updateNodes(true);
         force.start();
 }
@@ -934,10 +955,14 @@ function getTokens(input) {
             .toLowerCase()
             .split(' ');
 
-    for(var i =0; i< split.length; i++) {
-        if(split[i].length > 1) {
+    var splitL = split.length,
+        i = 0;
+
+    while(i < splitL) {
+        if(split[i].length > 2) {
             results.push(split[i]);
         }
+        i++;
     }
     return results;
 }
@@ -947,7 +972,13 @@ function highlightText(d) {
 }
 
 function regularText(d) {
-    d3.select(this).style('fill', '#000');
+    if(d.user_id === 'keyword') {
+        d3.select(this).style('fill', '#1884A8');
+    }
+    else {
+        d3.select(this).style('fill', '#222');
+    }
+    
 }
 
 function resetMenuColor(item) {
@@ -958,13 +989,19 @@ function resetMenuColor(item) {
 
 function getWords() {
     var words = [];
-    nodesData.forEach(function(o) {
-        if(!o.label) {
-            for(var t = 0; t < o.tokens.length; t++) {
-                words.push(o.tokens[t]);
+    var nodesL = nodesData.length,
+        i = 0;
+
+    while(i < nodesL) {
+        var node = nodesData[i];
+        if(!node.label) {
+            for(var t = 0; t < node.tokens.length; t++) {
+                words.push(node.tokens[t]);
             }
         }
-    });
+        i++;
+    }
+
     sortedWords(words, function(result) {
         wordCloudWords = result;
         if(wordCloudWords.length > wordLimit) {
@@ -986,6 +1023,5 @@ function getMaxMin() {
         var num = parseInt(d.score, 10);
         return num;
     });
-    console.log(maxPopular, maxSent, minSent);
     setScales();
 }
