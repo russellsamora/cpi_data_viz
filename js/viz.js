@@ -406,19 +406,27 @@ function setupCloud() {
 
     wordColorScale = d3.scale.quantize().domain([0,1]).range(aidan);
     wordSizeScale = d3.scale.linear().domain([minFreq,maxFreq]).range([smallWord,bigWord]);
-    d3.layout.cloud().size([width, height])
-      .words(wordCloudWords.map(function(d) {
-        var sz = wordSizeScale(d.frequency);
-        return {text: d.text, size: sz};
-      }))
-      .rotate(function() { return 0; })
-      // .font('Impact')
-      .fontSize(function(d) { return d.size; })
-      .padding(function(d) {
-        return d.frequency * 2;
-      })
-      .on('end', draw)
-      .start();
+    
+    var cloudW = 0,
+        cloudH = 0;
+
+    if(wordCloudWords.length < wordLimit) {
+        var frac = wordCloudWords.length / wordLimit;
+        cloudW = (frac * width * 0.5) + width * 0.5;
+        cloudH = (frac * height * 0.5) + height * 0.5;
+    }
+    d3.layout.cloud()
+        .size([cloudW, cloudH])
+        .timeInterval(10)
+        .words(wordCloudWords.map(function(d) {
+            var sz = wordSizeScale(d.frequency);
+            return {text: d.text, size: sz};
+        }))
+        .rotate(function() { return 0; })
+        .font('vinyl')
+        .fontSize(function(d) { return d.size; })
+        .on('end', draw)
+        .start();
 }
 
 function draw(words) {
@@ -428,18 +436,38 @@ function draw(words) {
         .selectAll('text')
         .data(words)
         .enter().append('text')
-        .style('font-size', function(d) { return d.size + 'px'; })
-        .classed('wordFont', true)
-        .style('fill', function(d) {
-            var col = wordColorScale(Math.random());
-            return col;
-        })
-        .attr('text-anchor', 'middle')
-        .attr('transform', function(d) {
-          return 'translate(' + [d.x, d.y] + ')rotate(' + d.rotate + ')';
-        })
-        .text(function(d) { return d.text; });
+            .style('font-size', function(d) { return d.size + 'px'; })
+            .style('font-family', 'vinyl')
+            .style('fill', function(d, i) {
+                var col = wordColorScale(Math.random());
+                return col;
+            })
+            .attr('text-anchor', 'middle')
+            .attr('transform', function(d) {
+                return 'translate(' + [d.x, d.y] + ')';
+            })
+            .text(function(d) { return d.text; });
 }
+
+// function draw(words) {
+//     viz.append('g')
+//         .classed('cloud', true)
+//         .attr('transform', 'translate(' + centerX + ',' + centerY + ')')
+//         .selectAll('text')
+//         .data(words)
+//         .enter().append('text')
+//         .style('font-size', function(d) { return d.size + 'px'; })
+//         .classed('wordFont', true)
+//         .style('fill', function(d) {
+//             var col = wordColorScale(Math.random());
+//             return col;
+//         })
+//         .attr('text-anchor', 'middle')
+//         .attr('transform', function(d) {
+//           return 'translate(' + [d.x, d.y] + ')rotate(' + d.rotate + ')';
+//         })
+//         .text(function(d) { return d.text; });
+// }
 function moveToCenter(alph) {
     
     return function(d, i) {
@@ -929,6 +957,7 @@ function recharge() {
 
 function changeChallenge(cur) {
     challengeShowing = true;
+    userMessage.hide();
     $('.tool').css('opacity', 1);
     hideText();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
@@ -1001,6 +1030,7 @@ function getWords() {
         }
         i++;
     }
+
 
     sortedWords(words, function(result) {
         wordCloudWords = result;
