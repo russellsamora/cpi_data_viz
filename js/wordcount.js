@@ -4,24 +4,11 @@ function sortedWords(input, callback) {
 	var iWordsCount = sWords.length; // count w/ duplicates
 
 	// array of words to ignore
-var ignore = ["for","with","from","about","into","over","after","beneath","under","above","the","and","that","have","not","with","she","you","this","but","his","they","say","her","because","will","their","who","get","which","when","make","can","just","him","your","it's","has","also","too","where","don't","i'm","how","was","are","what","see","would","should","like","these","those","their","out","them","ther","all","explain","response","comment","doing","going","could","any","know","our","there's","it's","than","other","through","doesn't","what's","etc","there","were","its","haven't","one"];
-	
-	ignore = (function(){
-		var o = {}; // object prop checking > in array checking
-		var iCount = ignore.length,
-			i = 0;
-		while(i < iCount) {
-			o[ignore[i]] = true;
-			i++;
-		}
-		return o;
-	}());
-
 	var counts = {},
 		i = 0;
 	while(i < iWordsCount) {
 		var sWord = sWords[i];
-		if (!ignore[sWord] && sWord.length > 2) {
+		if (sWord.length > 2) {
 			counts[sWord] = counts[sWord] || 0;
 			counts[sWord]++;
 		}

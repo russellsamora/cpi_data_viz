@@ -51,7 +51,9 @@ var currentInfo = null,
     vizMode = 0,
     maxSent = 0,
     minSent = 0,
-    aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(190,190,190)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'];
+    aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(190,190,190)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
+    ignoreWords = ["for","with","from","about","into","over","after","beneath","under","above","the","and","that","have","not","with","she","you","this","but","his","they","say","her","because","will","their","who","get","which","when","make","can","just","him","your","it's","has","also","too","where","don't","i'm","how","was","are","what","see","would","should","like","these","those","their","out","them","ther","all","explain","response","comment","doing","going","could","any","know","our","there's","it's","than","other","through","doesn't","what's","etc","there","were","its","haven't","one"],
+    ignore = null;
 
 
 $(function() {
@@ -137,6 +139,13 @@ $(function() {
     $('.submitSearch').bind('click', function(e) {
         e.preventDefault();
         selectSearch(this);
+    });
+
+    $('.searchField').bind('keypress', function(e) {
+        if(e.which === 13) {
+            e.preventDefault();
+            selectSearch(this);
+        }
     });
 
     //view more comments
@@ -253,6 +262,7 @@ function resizeEnd() {
 function init() {
     //setup d3
     
+    createIgnoreList();
     viz = d3.select('.wrapper').append('svg');
     bubbleViz = viz.append('g').classed('bubbles', true);
     nodesData = [];
@@ -956,6 +966,7 @@ function recharge() {
 }
 
 function changeChallenge(cur) {
+    //do a bunch of resets
     challengeShowing = true;
     userMessage.hide();
     $('.tool').css('opacity', 1);
@@ -966,6 +977,17 @@ function changeChallenge(cur) {
     $('.wrapper-dropdown span').removeClass('activeFilter');
     compare = false;
     $('.filterList').empty();
+
+    if(vizMode !== 0) {
+        $('.tool').removeClass('currentMode');
+        $('.cloud').fadeOut(function() {
+            $('.bubbles').fadeIn();
+            vizMode = 0;
+        });
+        $('.bubbleMode').addClass('currentMode');
+        $('.demographics').fadeOut();   
+    }
+
     var challengeId = challenges[cur].challenge_id;
     challengeData = nestedData[challengeId];
 
@@ -988,7 +1010,7 @@ function getTokens(input) {
         i = 0;
 
     while(i < splitL) {
-        if(split[i].length > 2) {
+        if(split[i].length > 2 && !ignore[split[i]]) {
             results.push(split[i]);
         }
         i++;
@@ -1054,4 +1076,18 @@ function getMaxMin() {
         return num;
     });
     setScales();
+}
+function createIgnoreList() {
+    var ignoreCount = ignoreWords.length;
+    
+    ignore = (function(){
+        var o = {}; // object prop checking > in array checking
+        var i = 0;
+        while(i < ignoreCount) {
+            o[ignoreWords[i]] = true;
+            i++;
+        }
+        return o;
+    }());
+     console.log(ignore);
 }
