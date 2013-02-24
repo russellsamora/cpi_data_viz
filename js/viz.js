@@ -52,8 +52,9 @@ var currentInfo = null,
     maxSent = 0,
     minSent = 0,
     aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(190,190,190)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
-    ignoreWords = ["for","with","from","about","into","over","after","beneath","under","above","the","and","that","have","not","with","she","you","this","but","his","they","say","her","because","will","their","who","get","which","when","make","can","just","him","your","it's","has","also","too","where","don't","i'm","how","was","are","what","see","would","should","like","these","those","their","out","them","ther","all","explain","response","comment","doing","going","could","any","know","our","there's","it's","than","other","through","doesn't","what's","etc","there","were","its","haven't","one"],
-    ignore = null;
+    ignoreWords = ['myself','our','ours','ourselves','you','your','yours','yourself','yourselves','him','his','himself','she','her','hers','herself','its','itself','they','them','their','theirs','themselves','what','which','who','whom','whose','this','that','these','those','are','was','were','been','being','have','has','had','having','does','did','doing','will','would','should','can','could','ought','i\'m','you\'re','he\'s','she\'s','it\'s','we\'re','they\'re','i\'ve','you\'ve','we\'ve','they\'ve','i\'d','you\'d','he\'d','she\'d','we\'d','they\'d','i\'ll','you\'ll','he\'ll','she\'ll','we\'ll','they\'ll','isn\'t','aren\'t','wasn\'t','weren\'t','hasn\'t','haven\'t','hadn\'t','doesn\'t','don\'t','didn\'t','won\'t','wouldn\'t','shan\'t','shouldn\'t','can\'t','cannot','couldn\'t','mustn\'t','let\'s','that\'s','who\'s','what\'s','here\'s','there\'s','when\'s','where\'s','why\'s','how\'s','the','and','but','because','until','while','for','with','about','against','between','into','through','during','before','after','above','below','from','upon','down','out','off','over','under','again','further','then','once','here','there','when','where','why','how','all','any','both','each','few','more','most','other','some','such','nor','not','only','own','same','than','too','very','say','says','said','shall'];
+    ignore = null,
+    twoRowsCompare = false;
 
 
 $(function() {
@@ -294,7 +295,7 @@ function refineUsers(firstUsers) {
             var age = 2013 - parseInt(firstUsers[i].age,10);
 
             if(age < 18) {
-                firstUsers[i].age = 'less than 18';
+                firstUsers[i].age = 'under 18';
             }
             else if(age < 31) {
                 firstUsers[i].age = '18-30';
@@ -481,16 +482,28 @@ function draw(words) {
 function moveToCenter(alph) {
     
     return function(d, i) {
-        var targetX = null;
+        var targetX = null,
+            targetY  = centerY;
         if(drumLine) {
             targetX = (i+1) / nodesData.length * width;
+        }
+        else if (twoRowsCompare) {
+            var tempFoci = Math.ceil(foci / 2);
+                tempFocus = d.focus < tempFoci ? d.focus : d.focus - (tempFoci-1);
+            targetX = Math.floor(tempFocus / (tempFoci+1) * width);
+            if(d.focus < tempFoci) {
+                targetY = height * 0.4;
+            }
+            else {
+                targetY = height * 0.6;
+            }
         }
         else {
             targetX = Math.floor((d.focus / (foci+1)) * width);
         }
         
         d.x = d.x + (targetX - d.x) * (0.12) * alph;
-        d.y = d.y + (centerY - d.y) * (0.12) * alph;
+        d.y = d.y + (targetY - d.y) * (0.12) * alph;
     };
 }
 
@@ -772,7 +785,8 @@ function updateData() {
 function compareAll(sibs, categoryName) {
         var filterValues = [];
         sibs.each(function() {
-            var txtVal = $(this).text().toLowerCase();
+            // var txtVal = $(this).text().toLowerCase();
+            var txtVal = $(this).attr('data-display');
             filterValues.push(txtVal);
         });
         
@@ -844,8 +858,9 @@ function selectFilter(selection) {
     });
     var padre = $(selection).parentsUntil('.filters'),
         curDrop = $(padre[2]).children(),
+        parentLi = $(selection).parent();
         index = $(padre[2]).index('.wrapper-dropdown'),
-        text = $(selection).text().toLowerCase();
+        text = $(parentLi).attr('data-display');
         displayText = '{' + text + '}',
         catName = $(curDrop[0]).text().toLowerCase(),
         html = null,
@@ -854,13 +869,11 @@ function selectFilter(selection) {
     compare = false;
         
     //if (compare all), remove all filters
-    if(text === 'compare all') {
+    if(text === 'compare') {
         compare = true;
         removeAllFilters();
-        var par = $(selection).parent();
-        sibs = par.siblings();
+        sibs = parentLi.siblings();
         var numSibs = sibs.length;
-
         foci = numSibs;
         html = '<p data-compare="1" data-padre=' + index +'>' + displayText + '</p>';
     }
@@ -896,15 +909,21 @@ function selectFilter(selection) {
         filterList.append(html);
         //delete filter on click
         $('.filterList p').bind('click', function() {
+            twoRowsCompare = false;
             $(this).remove();
             resetMenuColor(this);
             updateData();
         });
     }
     if(!compare) {
+        twoRowsCompare = false;
         updateData();
     }
     else {
+        var numRows = Math.floor((width / sibs.length) / 150);
+        if(numRows < 1) {
+            twoRowsCompare = true;
+        }
         compareAll(sibs, catName);
     }
 }
