@@ -361,18 +361,27 @@ input[type=text] {
     right: 0;
     width: 100%;
     height: 100%;
+    overflow: auto;
 }
 .helpArea .content {
     width: 960px;
     margin: 0 auto;
+    margin-top: 20px;
 }
-.helpArea .content h1 {
-    margin-top: 100px;
-    font-size: 3em;
+.helpArea .content h2 {
+    margin-top: 20px; 
+    color: #EA446A;
+    font-size: 1.6em;
 }
 .helpArea .content p {
-    margin-top: 20px;
-    font-size: 1.5em;
+    margin: 10px;
+    font-size: 1.2em;
+}
+.helpArea ul {
+    margin-left: 40px;
+}
+.helpArea ul li {
+    font-size: 1.2em;
 }
 .filters > h2 {
     color: #eee;
@@ -446,15 +455,15 @@ input[type=text] {
     border-radius: 5px;
     width: 640px;
     padding: 10px;
-    background: rgb(235, 236, 215);
-    border: 4px solid rgb(200,200,200);
+    background: #555;
+    border: 4px solid #aaa;
     color: #eee;
     margin: 0 auto;
 }
 .displayInfo p {
     padding: 10px;
     margin-bottom: 20px;
-    color: #222;
+    color: #eee;
 }
 .displayInfo .viewComments {
     text-align: center;
@@ -577,4 +586,11 @@ h2.currentViz {
 }
 .wordFont {
     font-family: 'Chau Philomene One', sans-serif;
+}
+.spectrum {
+    margin-left: 10px;
+    margin-bottom: -8px;   
+}
+.helpArea .content p.centerText {
+    text-align: center;
 }

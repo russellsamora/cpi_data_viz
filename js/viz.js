@@ -74,154 +74,7 @@ $(function() {
     userMessage = $('.userMessage');
     filterList = $('.filterList');
 
-    /***** EVENTS ******/
-    
-    //dropdown show / hid
-    dropdown.bind('click',function()  {
-        var makeActive = true;
-
-        if($(this).is('.active')) {
-            makeActive = false;
-        }
-        //remove from all of them
-        dropdown.removeClass('active');
-
-        //bring it up if it was off
-        if(makeActive) {
-            $(this).toggleClass('active');
-        }
-    });
-
-    //click off dropdown
-    vizContainer.click(function() {
-        dropdown.removeClass('active');
-        if(challengeInfo.is('.challengeDropdown')) {
-            $('.downButton').toggleClass('rotateNinety');
-            challengeInfo.toggleClass('challengeDropdown');
-            $('.challengeInfo ul').fadeToggle(100);
-        }
-    });
-    $('.wrapper').click(function() {
-        dropdown.removeClass('active');
-        
-    });
-    //help button
-    $('.helpButton').bind('click', function() {
-        $('.helpArea').css({
-            width: width,
-            height: height
-        });
-        $('.helpArea').fadeIn();
-    });
-    $('.helpArea').bind('click', function() {
-        $('.helpArea').fadeOut();
-    });
-
-    //close response box
-    $('.displayInfo a').bind('click', function(e) {
-        e.preventDefault();
-        hideText();
-    });
-
-    //slide the challenge window
-    $('.challengeLink').bind('click', function() {
-        clearTimeout(messageTimeout);
-        dropdown.removeClass('active');
-        userMessage.hide();
-        $('.downButton').toggleClass('rotateNinety');
-        challengeInfo.toggleClass('challengeDropdown');
-        $('.challengeInfo ul').fadeToggle(100);
-    });
-
-    //filter click
-    $('.dropdown li a').bind('click', function(e) {
-        e.preventDefault();
-        if(challengeShowing && ready) {
-            drumLine = false;
-            selectFilter(this);
-        }
-    });
-
-    //filter search
-    $('.submitSearch').bind('click', function(e) {
-        e.preventDefault();
-        selectSearch(this);
-    });
-
-    $('.searchField').bind('keypress', function(e) {
-        if(e.which === 13) {
-            e.preventDefault();
-            selectSearch(this);
-        }
-    });
-
-    //view more comments
-    $('.viewComments').bind('click', function() {
-        if(showingComments) {
-            $(this).text('view comments');
-            showingComments = false;
-        }
-        else {
-            $(this).text('hide comments');
-            showingComments = true;
-        }
-        
-        $('.allComments').toggle();
-    });
-
-    //resize bind
-    $(window).bind('resize', function() {
-        resize(false);
-    });
-
-    //form shape click
-    $('.formShape').bind('click', function() {
-        if(currentFilters.length === 0 && !compare && challengeShowing) {
-            drumLine = !drumLine;
-            if(drumLine) {
-                $(this).css('background-position', '0px');
-            }
-            else {
-                $(this).css('background-position', '-32px');
-            }
-            force.start();
-        }
-    });
-
-    //tool button click
-    $('.bubbleMode').bind('click', function() {
-        if(challengeShowing && vizMode !== 0) {
-            $('.demographics').fadeOut();
-            $('.cloud').fadeOut(function() {
-                $('.bubbles').fadeIn();
-            });
-            vizMode = 0;
-            $('.tool').removeClass('currentMode');
-            $(this).addClass('currentMode');
-        }
-    });
-    $('.cloudMode').bind('click', function() {
-        if(challengeShowing && vizMode !== 1) {
-            $('.demographics').fadeOut();
-            $('.bubbles').fadeOut(function() {
-                compileWords();
-            });
-            vizMode = 1;
-            $('.tool').removeClass('currentMode');
-            $(this).addClass('currentMode');
-        }
-    });
-    $('.demographicMode').bind('click', function() {
-        if(challengeShowing && vizMode !== 2) {
-            $('.cloud').fadeOut();
-            $('.bubbles').fadeOut(function() {
-                $('.demographics').fadeIn();
-            });
-            vizMode = 2;
-            $('.tool').removeClass('currentMode');
-            $(this).addClass('currentMode');
-        }
-    });
+    setupEvents();
     //begin
     init();
 });
@@ -395,7 +248,7 @@ function changeChallenge(cur) {
     challengeShowing = true;
     userMessage.hide();
     $('.tool').css('opacity', 1);
-    hideText();
+    hideResponse();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     $('.challengeQuestion').text(challenges[cur].challenge_question);
     challengeData = [];
@@ -687,7 +540,7 @@ function selectSearch(selection) {
         opacity: 0.3,
         'background-position': '0px'
     });
-    hideText();
+    hideResponse();
     var text = $('.searchField').val(),
             displayText = '{' + text + '}',
             html = '<p data-compare="0" data-padre=999 data-name="' + text + '">' + displayText + '</p>';
@@ -722,7 +575,7 @@ function selectSearch(selection) {
 
 //add the selected filter to the list and then update the data or compare all data
 function selectFilter(selection) {
-    hideText();
+    hideResponse();
     $('.formShape').css({
         opacity: 0.3,
         'background-position': '0px'
@@ -832,7 +685,7 @@ function showResponse(d) {
         deleteLabel(d);
         return;
     }
-    hideText();
+    hideResponse();
     selectedCircle = this;
     d3.select(this).classed('selectedCircle', true);
     $('.displayInfo .mainResponse').text(d.response);
@@ -1060,7 +913,6 @@ function createIgnoreList() {
         }
         return o;
     }());
-     console.log(ignore);
 }
 
 //goes thru all the words in each response and creates dictionary and sets up word cloud
@@ -1209,4 +1061,154 @@ function resetMenuColor(item) {
     var index = $(item).attr('data-padre'),
         el = dropdown.get(index);
     $(el).children().removeClass('activeFilter');
+}
+
+/***** EVENTS *******/
+function setupEvents(){
+    //dropdown show / hid
+    dropdown.bind('click',function()  {
+        var makeActive = true;
+
+        if($(this).is('.active')) {
+            makeActive = false;
+        }
+        //remove from all of them
+        dropdown.removeClass('active');
+
+        //bring it up if it was off
+        if(makeActive) {
+            $(this).toggleClass('active');
+        }
+    });
+
+    //click off dropdown
+    vizContainer.click(function() {
+        dropdown.removeClass('active');
+        if(challengeInfo.is('.challengeDropdown')) {
+            $('.downButton').toggleClass('rotateNinety');
+            challengeInfo.toggleClass('challengeDropdown');
+            $('.challengeInfo ul').fadeToggle(100);
+        }
+    });
+    $('.wrapper').click(function() {
+        dropdown.removeClass('active');
+        
+    });
+    //help button
+    $('.helpButton').bind('click', function() {
+        $('.helpArea').css({
+            width: width,
+            height: height
+        });
+        $('.helpArea').fadeIn();
+    });
+    $('.helpArea').bind('click', function() {
+        $('.helpArea').fadeOut();
+    });
+
+    //close response box
+    $('.displayInfo a').bind('click', function(e) {
+        e.preventDefault();
+        hideResponse();
+    });
+
+    //slide the challenge window
+    $('.challengeLink').bind('click', function() {
+        clearTimeout(messageTimeout);
+        dropdown.removeClass('active');
+        userMessage.hide();
+        $('.downButton').toggleClass('rotateNinety');
+        challengeInfo.toggleClass('challengeDropdown');
+        $('.challengeInfo ul').fadeToggle(100);
+    });
+
+    //filter click
+    $('.dropdown li a').bind('click', function(e) {
+        e.preventDefault();
+        if(challengeShowing && ready) {
+            drumLine = false;
+            selectFilter(this);
+        }
+    });
+
+    //filter search
+    $('.submitSearch').bind('click', function(e) {
+        e.preventDefault();
+        selectSearch(this);
+    });
+
+    $('.searchField').bind('keypress', function(e) {
+        if(e.which === 13) {
+            e.preventDefault();
+            selectSearch(this);
+        }
+    });
+
+    //view more comments
+    $('.viewComments').bind('click', function() {
+        if(showingComments) {
+            $(this).text('view comments');
+            showingComments = false;
+        }
+        else {
+            $(this).text('hide comments');
+            showingComments = true;
+        }
+        
+        $('.allComments').toggle();
+    });
+
+    //resize bind
+    $(window).bind('resize', function() {
+        resize(false);
+    });
+
+    //form shape click
+    $('.formShape').bind('click', function() {
+        if(currentFilters.length === 0 && !compare && challengeShowing) {
+            drumLine = !drumLine;
+            if(drumLine) {
+                $(this).css('background-position', '0px');
+            }
+            else {
+                $(this).css('background-position', '-32px');
+            }
+            force.start();
+        }
+    });
+
+    //tool button click
+    $('.bubbleMode').bind('click', function() {
+        if(challengeShowing && vizMode !== 0) {
+            $('.demographics').fadeOut();
+            $('.cloud').fadeOut(function() {
+                $('.bubbles').fadeIn();
+            });
+            vizMode = 0;
+            $('.tool').removeClass('currentMode');
+            $(this).addClass('currentMode');
+        }
+    });
+    $('.cloudMode').bind('click', function() {
+        if(challengeShowing && vizMode !== 1) {
+            $('.demographics').fadeOut();
+            $('.bubbles').fadeOut(function() {
+                compileWords();
+            });
+            vizMode = 1;
+            $('.tool').removeClass('currentMode');
+            $(this).addClass('currentMode');
+        }
+    });
+    $('.demographicMode').bind('click', function() {
+        if(challengeShowing && vizMode !== 2) {
+            $('.cloud').fadeOut();
+            $('.bubbles').fadeOut(function() {
+                $('.demographics').fadeIn();
+            });
+            vizMode = 2;
+            $('.tool').removeClass('currentMode');
+            $(this).addClass('currentMode');
+        }
+    });
 }
