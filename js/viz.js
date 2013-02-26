@@ -54,7 +54,8 @@ var currentInfo = null,
     aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(190,190,190)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
     ignoreWords = ['myself','our','ours','ourselves','you','your','yours','yourself','yourselves','him','his','himself','she','her','hers','herself','its','itself','they','them','their','theirs','themselves','what','which','who','whom','whose','this','that','these','those','are','was','were','been','being','have','has','had','having','does','did','doing','will','would','should','can','could','ought','i\'m','you\'re','he\'s','she\'s','it\'s','we\'re','they\'re','i\'ve','you\'ve','we\'ve','they\'ve','i\'d','you\'d','he\'d','she\'d','we\'d','they\'d','i\'ll','you\'ll','he\'ll','she\'ll','we\'ll','they\'ll','isn\'t','aren\'t','wasn\'t','weren\'t','hasn\'t','haven\'t','hadn\'t','doesn\'t','don\'t','didn\'t','won\'t','wouldn\'t','shan\'t','shouldn\'t','can\'t','cannot','couldn\'t','mustn\'t','let\'s','that\'s','who\'s','what\'s','here\'s','there\'s','when\'s','where\'s','why\'s','how\'s','the','and','but','because','until','while','for','with','about','against','between','into','through','during','before','after','above','below','from','upon','down','out','off','over','under','again','further','then','once','here','there','when','where','why','how','all','any','both','each','few','more','most','other','some','such','nor','not','only','own','same','than','too','very','say','says','said','shall'];
     ignore = null,
-    twoRowsCompare = false;
+    twoRowsCompare = false,
+    stats = null;
 
 
 $(function() {
@@ -106,6 +107,10 @@ $(function() {
     });
     //help button
     $('.helpButton').bind('click', function() {
+        $('.helpArea').css({
+            width: width,
+            height: height
+        });
         $('.helpArea').fadeIn();
     });
     $('.helpArea').bind('click', function() {
@@ -121,6 +126,7 @@ $(function() {
     //slide the challenge window
     $('.challengeLink').bind('click', function() {
         clearTimeout(messageTimeout);
+        dropdown.removeClass('active');
         userMessage.hide();
         $('.downButton').toggleClass('rotateNinety');
         challengeInfo.toggleClass('challengeDropdown');
@@ -258,6 +264,8 @@ function resizeEnd() {
     //start up the movement again
     recharge();
     force.start();
+
+    viz.select('.cloud').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
 }
 
 function init() {
@@ -1004,7 +1012,7 @@ function changeChallenge(cur) {
             vizMode = 0;
         });
         $('.bubbleMode').addClass('currentMode');
-        $('.demographics').fadeOut();   
+        $('.demographics').fadeOut();
     }
 
     var challengeId = challenges[cur].challenge_id;
@@ -1014,6 +1022,7 @@ function changeChallenge(cur) {
     getMaxMin();
     updateData();
 
+    calculateStats();
     force.nodes(nodesData);
     start();
 }
@@ -1109,4 +1118,54 @@ function createIgnoreList() {
         return o;
     }());
      console.log(ignore);
+}
+function sortedWords(input, callback) {
+
+    var sWords = input;
+    var iWordsCount = sWords.length; // count w/ duplicates
+
+    // array of words to ignore
+    var counts = {},
+        i = 0;
+    while(i < iWordsCount) {
+        var sWord = sWords[i];
+        if (sWord.length > 2) {
+            counts[sWord] = counts[sWord] || 0;
+            counts[sWord]++;
+        }
+        i++;
+    }
+
+    var arr = []; // an array of objects to return
+    for (var w in counts) {
+        arr.push({
+            text: w,
+            frequency: counts[w]
+        });
+    }
+
+    // sort array by descending frequency | http://stackoverflow.com/a/8837505
+    var finished = arr.sort(function(a,b){
+        return (a.frequency > b.frequency) ? -1 : ((a.frequency < b.frequency) ? 1 : 0);
+    });
+
+    callback(finished);
+}
+
+//get stats for the current challenge
+function calculateStats() {
+    var nodesL = nodesData.length,
+        i = 0;
+    stats = {
+        likes: 0,
+        comments: 0,
+        responses: 0
+    };
+    while(i < nodesL) {
+        stats.likes += nodesData[i].likes_num;
+        stats.comments += nodesData[i].comments_num;
+        stats.responses += 1;
+        i++;
+    }
+    
 }
