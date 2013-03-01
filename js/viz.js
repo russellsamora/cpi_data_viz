@@ -41,6 +41,8 @@ var currentInfo = null,
     drumLine = false,
     selectedCircle = null,
     compare = false,
+    colorScalePos = null,
+    colorScaleNeg = null,
     wordCloudWords = null,
     wordColorScale = null,
     wordSizeScale = null,
@@ -52,7 +54,9 @@ var currentInfo = null,
     vizMode = 0,
     maxSent = 0,
     minSent = 0,
-    aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(190,190,190)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
+    aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(180,180,180)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
+    aidanNeg = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)'],
+    aidanPos = ['rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
     ignoreWords = ['myself','our','ours','ourselves','you','your','yours','yourself','yourselves','him','his','himself','she','her','hers','herself','its','itself','they','them','their','theirs','themselves','what','which','who','whom','whose','this','that','these','those','are','was','were','been','being','have','has','had','having','does','did','doing','will','would','should','can','could','ought','i\'m','you\'re','he\'s','she\'s','it\'s','we\'re','they\'re','i\'ve','you\'ve','we\'ve','they\'ve','i\'d','you\'d','he\'d','she\'d','we\'d','they\'d','i\'ll','you\'ll','he\'ll','she\'ll','we\'ll','they\'ll','isn\'t','aren\'t','wasn\'t','weren\'t','hasn\'t','haven\'t','hadn\'t','doesn\'t','don\'t','didn\'t','won\'t','wouldn\'t','shan\'t','shouldn\'t','can\'t','cannot','couldn\'t','mustn\'t','let\'s','that\'s','who\'s','what\'s','here\'s','there\'s','when\'s','where\'s','why\'s','how\'s','the','and','but','because','until','while','for','with','about','against','between','into','through','during','before','after','above','below','from','upon','down','out','off','over','under','again','further','then','once','here','there','when','where','why','how','all','any','both','each','few','more','most','other','some','such','nor','not','only','own','same','than','too','very','say','says','said','shall'];
     ignore = null,
     twoRowsCompare = false,
@@ -114,9 +118,17 @@ function refineUsers(firstUsers) {
         for(var prop in tempUser) {
             if(tempUser[prop].length < 1) {
                 tempUser[prop] = 'unspecified';
+
+                //some special case
+                //this is array
                 if(prop === 'stake') {
                     tempUser[prop] = ['unspecified'];
                 }
+                //creating new category
+                if(prop === 'birth_year') {
+                    tempUser.age = 'unspecified';
+                }
+
             }
             else {
                 tempUser[prop] = tempUser[prop].toLowerCase();
@@ -166,6 +178,7 @@ function setPropertiesFromData() {
         bigData[i].focus = 1;
         bigData[i].tokens = getTokens(bigData[i].response);
         bigData[i].score = parseInt(bigData[i].score, 10);
+        bigData[i].comparative = parseFloat(bigData[i].comparative);
         bigData[i].replies_num = parseInt(bigData[i].replies_num, 10);
         bigData[i].likes_num = parseInt(bigData[i].likes_num, 10);
         bigData[i].popular = parseInt(bigData[i].popular, 10);
@@ -277,11 +290,11 @@ function changeChallenge(cur) {
     $('.tool').css('opacity', 1);
     hideResponse();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
-    // $('.challengeQuestion').text(challenges[cur].challenge_question);
-    $('.challengeQuestion').text('this is temporary?');
+    $('.challengeQuestion').text(challenges[cur].challenge_question);
     challengeData = [];
     $('.wrapper-dropdown span').removeClass('activeFilter');
     compare = false;
+    twoRowsCompare = false;
     $('.filterList').empty();
 
     if(vizMode !== 0) {
@@ -328,12 +341,14 @@ function setScales() {
     //scale down the size of the circles based on the screen dimensions and max # comments
     // var max = (Math.floor(height * 0.04)) > maxMaxRadius ? maxMaxRadius : max;
     var frac = (1 / challengeData.length);
-    var val = Math.floor(height * frac);
+    var val = Math.floor(height * frac) * 10;
     var max = val > maxMaxRadius ? maxMaxRadius : val;
     var maxRadius =  max > (minRadius * 2) ? max : (minRadius * 2);
+    console.log(val,max);
     radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
     //radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
-    colorScale = d3.scale.quantize().domain([minSent, maxSent]).range(aidan);
+    colorScalePos = d3.scale.quantize().domain([0, maxSent]).range(aidanPos);
+    colorScaleNeg = d3.scale.quantize().domain([minSent, 0]).range(aidanNeg);
 
     bigWord = Math.floor(width / 20);
 }
@@ -344,12 +359,10 @@ function getMaxMin() {
         return d.popular;
     });
     maxSent = d3.max(challengeData, function(d,i) {
-        var num = parseInt(d.score, 10);
-        return num;
+        return d.score;
     });
     minSent = d3.min(challengeData, function(d,i) {
-        var num = parseInt(d.score, 10);
-        return num;
+        return d.score;
     });
     setScales();
 }
@@ -367,7 +380,6 @@ function start(filter) {
     nodesEl = nodesEl.data(force.nodes(), function(d,i) {
         return d.user_id;
     });
-    
     /***** ENTER *****/
     var g = nodesEl.enter().append('g')
         .classed('node', true)
@@ -392,7 +404,17 @@ function start(filter) {
             if(d.label) {
                 return 'rgba(0,0,0,0)';
             }
-            return colorScale(s);
+            
+            if(s === 0) {
+                return 'rgb(180,180,180)';
+            }
+            else if(s < 0) {
+                return colorScaleNeg(s);
+            }
+            else {
+                return colorScalePos(s);
+            }
+            
         })
         .call(force.drag)
         .on('click', showResponse);
@@ -450,7 +472,15 @@ function start(filter) {
             if(d.label === true) {
                 return 'rgba(0,0,0,0)';
             }
-            return colorScale(s);
+            if(s === 0) {
+                return 'rgb(180,180,180)';
+            }
+            else if(s < 0) {
+                return colorScaleNeg(s);
+            }
+            else {
+                return colorScalePos(s);
+            }
         });
     d3.selectAll('.label')
         .select('text')
@@ -537,6 +567,7 @@ function updateData() {
                         }
                         else {
                             var value = tempUser[currentFilters[a].category];
+                            console.log(value);
                             if(value !== currentFilters[a].name) {
                                 nodesData[i].focus = 2;
                                 continue;
@@ -646,7 +677,7 @@ function selectFilter(selection) {
 
     compare = false;
     //if (compare all), remove all filters
-    if(text === 'compare') {
+    if(text === 'compare all') {
         compare = true;
         removeAllFilters();
         sibs = parentLi.siblings();
@@ -698,7 +729,7 @@ function selectFilter(selection) {
         updateData();
     }
     else {
-        var numRows = Math.floor((width / sibs.length) / 150);
+        var numRows = Math.floor((width / sibs.length) / 170);
         if(numRows < 1) {
             twoRowsCompare = true;
         }
@@ -748,7 +779,13 @@ function showResponse(d) {
         newP = '';
     for(var i = 0; i < splits.length; i++) {
         if(splits[i].substring(0,3) !== '[[[') {
-            newP+= '<span>' + splits[i] + '</span><br>'; 
+            newP+= '<span>' + splits[i] + '</span><br>';
+        }
+        else {
+            //no comment in a map challenge
+            if(splits.length < 2) {
+                newP+= '<span>no respone</span>';
+            }
         }
     }
 
