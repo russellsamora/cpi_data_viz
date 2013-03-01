@@ -114,6 +114,9 @@ function refineUsers(firstUsers) {
         for(var prop in tempUser) {
             if(tempUser[prop].length < 1) {
                 tempUser[prop] = 'unspecified';
+                if(prop === 'stake') {
+                    tempUser[prop] = ['unspecified'];
+                }
             }
             else {
                 tempUser[prop] = tempUser[prop].toLowerCase();
@@ -909,7 +912,6 @@ function moveToCenter(alph) {
         else {
             targetX = Math.floor((d.focus / (foci+1)) * width);
         }
-        
         d.x = d.x + (targetX - d.x) * (0.12) * alph;
         d.y = d.y + (targetY - d.y) * (0.12) * alph;
     };
