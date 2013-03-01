@@ -48,6 +48,7 @@ var currentInfo = null,
     smallWord = 16,
     bigWord = 30,
     bubbleViz = null,
+    demographicViz = null,
     vizMode = 0,
     maxSent = 0,
     minSent = 0,
@@ -56,6 +57,8 @@ var currentInfo = null,
     ignore = null,
     twoRowsCompare = false,
     stats = null;
+
+    var debug = 0;
 
 //init and set most click events and stuff
 $(function() {
@@ -91,7 +94,7 @@ function init() {
     nodesEl = bubbleViz.selectAll('.node');
     resize(true);
     setupForce();
-    d3.csv('/data/output219.csv',function(csv) {
+    d3.csv('/data/responses.csv',function(csv) {
         bigData = csv;
         setPropertiesFromData();
     })
@@ -107,36 +110,45 @@ function refineUsers(firstUsers) {
         i = 0;
 
     while(i < usersL) {
-        //tolowercase for bad data....
-        var lower = firstUsers[i].gender.toLowerCase();
-        firstUsers[i].gender = lower;
-
-        //check if there IS a age year
-        if(firstUsers[i].age.length > 0) {
-            /** THIS WILL BE THE CASE WHEN ITS DATES SON **/
-            var age = 2013 - parseInt(firstUsers[i].age,10);
-
-            if(age < 18) {
-                firstUsers[i].age = 'under 18';
-            }
-            else if(age < 31) {
-                firstUsers[i].age = '18-30';
-            }
-            else if(age < 41) {
-                firstUsers[i].age = '31-40';
-            }
-            else if(age < 51) {
-                firstUsers[i].age = '41-50';
+        var tempUser = firstUsers[i];
+        for(var prop in tempUser) {
+            if(tempUser[prop].length < 1) {
+                tempUser[prop] = 'unspecified';
             }
             else {
-                firstUsers[i].age = 'over 50';
+                tempUser[prop] = tempUser[prop].toLowerCase();
+
+                //special case:
+                //birth year -> age range
+                if(prop === 'birth_year') {
+                    var age = 2013 - parseInt(tempUser[prop],10);
+
+                    if(age < 18) {
+                        tempUser.age = 'under 18';
+                    }
+                    else if(age < 31) {
+                        tempUser.age = '18-30';
+                    }
+                    else if(age < 41) {
+                        tempUser.age = '31-40';
+                    }
+                    else if(age < 51) {
+                        tempUser.age = '41-50';
+                    }
+                    else {
+                        tempUser.age = 'over 50';
+                    }
+                }
+                if(prop === 'stake') {
+                    //split up stake by ,
+                    var splits = tempUser[prop].split(',');
+                    for(var s = 0; s < splits.length; s++) {
+                        splits[s] = splits[s].replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+                    }
+                    tempUser[prop] = splits;
+                }
             }
         }
-        else {
-            //unspecified
-            firstUsers[i].age = 'unspecified';
-        }
-
         i++;
     }
     return firstUsers;
@@ -150,11 +162,10 @@ function setPropertiesFromData() {
     while(i < bigL) {
         bigData[i].focus = 1;
         bigData[i].tokens = getTokens(bigData[i].response);
-        bigData[i].score = parseFloat(bigData[i].score);
-        bigData[i].comparative = parseFloat(bigData[i].comparative);
-        bigData[i].comments_num = parseInt(bigData[i].comments_num, 10);
+        bigData[i].score = parseInt(bigData[i].score, 10);
+        bigData[i].replies_num = parseInt(bigData[i].replies_num, 10);
         bigData[i].likes_num = parseInt(bigData[i].likes_num, 10);
-        bigData[i].popular = bigData[i].comments_num + bigData[i].likes_num;
+        bigData[i].popular = parseInt(bigData[i].popular, 10);
         i++;
     }
     nestedData = d3.nest()
@@ -162,12 +173,12 @@ function setPropertiesFromData() {
             return d.challenge_id;
         })
         .map(bigData);
-    loadUsersAndChallenges();
+    loadUsers();
     setScales();
 }
 
 //load the user and challenge data
-function loadUsersAndChallenges() {
+function loadUsers() {
     //load demographic user info
     d3.csv('/data/users.csv',function(csv_users) {
         //refine user data (ie. changing birth year to age range etc.)
@@ -179,16 +190,20 @@ function loadUsersAndChallenges() {
         .map(refinedUsers);
 
         //load challenge info
-        d3.csv('/data/challenges.csv',function(csv_challenges) {
-            challenges = csv_challenges;
-            
-            populateChallenges();
-            //now all the data is ready, fade out the user message box
-            userMessage.fadeOut(1000, function() {
-                $(this).text('Select a challenge above to begin!');
-                $(this).fadeIn(200, function() {
-                    ready = true;
-                });
+        loadChallenges();
+        setupDemographic();
+    });
+}
+
+function loadChallenges() {
+    d3.csv('/data/challenges.csv',function(csv_challenges) {
+        challenges = csv_challenges;
+        populateChallenges();
+        //now all the data is ready, fade out the user message box
+        userMessage.fadeOut(1000, function() {
+            $(this).text('Select a challenge above to begin!');
+            $(this).fadeIn(200, function() {
+                ready = true;
             });
         });
     });
@@ -196,8 +211,15 @@ function loadUsersAndChallenges() {
 
 //put the challenge names in the menu
 function populateChallenges() {
+    //create mission labels up top
+    var numMissions = parseInt(challenges[challenges.length-1].mission,10) + 1;
+    for(var m = 1; m < numMissions; m++) {
+        var missionHtml = '<ul class="mission' + m + '"><li class="missionTitle">Mission ' + m + '</li></ul>';
+        challengeInfo.append(missionHtml);
+    }
+
     for(var i = 0; i < challenges.length; i++) {
-        var missionClass = '.mission' + challenges[i].mission_num;
+        var missionClass = '.mission' + challenges[i].mission;
         var html = '<li><a class="selectLink" data-num="' + i + '" href="">' + challenges[i].challenge_title + '</a></li>';
         $(missionClass).append(html);
     }
@@ -208,8 +230,10 @@ function populateChallenges() {
             var num = $(this).attr('data-num');
             $('.downButton').toggleClass('rotateNinety');
             challengeInfo.toggleClass('challengeDropdown');
-            $('.challengeInfo ul').fadeToggle(100, function() {
+            setTimeout(function() {
                 changeChallenge(num);
+            }, 150);
+            $('.challengeInfo ul').fadeOut(100, function() {
             });
         }
         return false;
@@ -225,18 +249,18 @@ function setupForce() {
                     nodesEl.select('circle').each(moveToCenter(e.alpha))
                         .attr('cx', function(d) { return d.x; })
                         .attr('cy', function(d) { return d.y; });
-                    nodesEl.attr("cx", function(d) { return d.x; })
-                        .attr("cy", function(d) { return d.y; });
                     nodesEl.select('text').each(moveToCenter(e.alpha))
                         .attr('x', function(d) { return d.x; })
                         .attr('y', function(d) { return d.y; });
-                    nodesEl.attr("x", function(d) { return d.x; })
-                        .attr("y", function(d) { return d.y; });
                 });
     recharge();
 }
 
-
+//create the d3 layout for the demographic visualization
+function setupDemographic(){
+    demographicViz = viz.append('g')
+        .classed('demographics', true);
+}
 
 
 
@@ -250,7 +274,8 @@ function changeChallenge(cur) {
     $('.tool').css('opacity', 1);
     hideResponse();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
-    $('.challengeQuestion').text(challenges[cur].challenge_question);
+    // $('.challengeQuestion').text(challenges[cur].challenge_question);
+    $('.challengeQuestion').text('this is temporary?');
     challengeData = [];
     $('.wrapper-dropdown span').removeClass('activeFilter');
     compare = false;
@@ -268,13 +293,13 @@ function changeChallenge(cur) {
 
     var challengeId = challenges[cur].challenge_id;
     challengeData = nestedData[challengeId];
-
     nodesData = challengeData;
-    getMaxMin();
-    updateData();
 
-    calculateStats();
+    getMaxMin();
     force.nodes(nodesData);
+    updateData();
+    calculateStats();
+
     start();
 }
 
@@ -289,7 +314,7 @@ function calculateStats() {
     };
     while(i < nodesL) {
         stats.likes += nodesData[i].likes_num;
-        stats.comments += nodesData[i].comments_num;
+        stats.comments += nodesData[i].replies_num;
         stats.responses += 1;
         i++;
     }   
@@ -335,10 +360,11 @@ function getMaxMin() {
 //rebinds data, adds new elements, removes elements, updates elements
 function start(filter) {
     /**** JOIN DATA ****/
-    nodesEl = nodesEl.data(force.nodes(), function(d) {
+    //console.log(0, force.nodes());
+    nodesEl = nodesEl.data(force.nodes(), function(d,i) {
         return d.user_id;
     });
-
+    
     /***** ENTER *****/
     var g = nodesEl.enter().append('g')
         .classed('node', true)
@@ -355,12 +381,12 @@ function start(filter) {
                 return d.len;
             }
             return radiusScale(d.popular);
-            // return radiusScale((d.comments_num + d.likes_num));
+            // return radiusScale((d.replies_num + d.likes_num));
         })
         .style('fill', function(d,i) {
             // var s = colorScale(parseInt(d.comparative,10));
             var s = d.score;
-            if(d.label === true) {
+            if(d.label) {
                 return 'rgba(0,0,0,0)';
             }
             return colorScale(s);
@@ -382,6 +408,16 @@ function start(filter) {
         .on('mouseout', regularText)
         .attr('dy', '.3em')
         .style('text-anchor', 'middle')
+        .style('font-size', function(d) {
+            if(d.label) {
+                //14 is base, 36 is longest
+                var sz = Math.floor(10 + (36 - d.name.length) * 0.25);
+                return sz;
+            }
+            else {
+                return 0;
+            }
+        })
         .style('fill', function(d) {
             //make it a different color
             if(d.user_id === 'keyword') {
@@ -390,6 +426,7 @@ function start(filter) {
             return '#222';
         });
 
+    
     /**** UPDATE *****/
     //select all circles, update their radius and color
     d3.selectAll('.node')
@@ -417,7 +454,6 @@ function start(filter) {
         .text(function(d) {
             return d.name;
         });
-
     /***** EXIT ****/
     nodesEl.exit()
         .transition()
@@ -431,7 +467,6 @@ function start(filter) {
 
 //go thru all the filters and figure out which data stays or goes (left or right)
 function updateData() {
-    
     //extract value from filter list
     currentFilters = [];
     $('.filterList p').each(function(i){
@@ -465,7 +500,8 @@ function updateData() {
     if(currentFilters.length > 0) {
         foci = 2;
         while(i < nodesL) {
-           if(!nodesData[i].label) {
+            if(!nodesData[i].label) {
+                var tempUser = users[nodesData[i].user_id][0];
                 nodesData[i].focus = 1;
                 for(var a = 0; a < currentFilters.length; a++) {
                     // console.log(users[nodesData[i].user_id][0][currentFilters[a].category], currentFilters[a].name);
@@ -483,9 +519,25 @@ function updateData() {
                         }
                     }
                     else {
-                        if(users[nodesData[i].user_id][0][currentFilters[a].category] !== currentFilters[a].name) {
-                            nodesData[i].focus = 2;
-                            continue;
+                        //must check if it is the stake category (cuz it could be multiple)
+                        if(currentFilters[a].category === 'stake') {
+                            var stakes = tempUser[currentFilters[a].category];
+                                slength = stakes.length,
+                                foc = 2;
+                            for(var s = 0; s < slength; s++) {
+                                if(stakes[s] === currentFilters[a].name) {
+                                    foc = 1;
+                                    continue;
+                                }
+                            }
+                            nodesData[i].focus = foc;
+                        }
+                        else {
+                            var value = tempUser[currentFilters[a].category];
+                            if(value !== currentFilters[a].name) {
+                                nodesData[i].focus = 2;
+                                continue;
+                            }
                         }
                     }
                 }
@@ -510,8 +562,7 @@ function updateData() {
 function compareAll(sibs, categoryName) {
         var filterValues = [];
         sibs.each(function() {
-            // var txtVal = $(this).text().toLowerCase();
-            var txtVal = $(this).attr('data-display');
+            var txtVal = $(this).text().toLowerCase();
             filterValues.push(txtVal);
         });
         
@@ -584,14 +635,13 @@ function selectFilter(selection) {
         curDrop = $(padre[2]).children(),
         parentLi = $(selection).parent();
         index = $(padre[2]).index('.wrapper-dropdown'),
-        text = $(parentLi).attr('data-display');
+        text = $(parentLi).text().toLowerCase();
         displayText = '{' + text + '}',
         catName = $(curDrop[0]).text().toLowerCase(),
         html = null,
         sibs = null;
 
     compare = false;
-        
     //if (compare all), remove all filters
     if(text === 'compare') {
         compare = true;
@@ -621,6 +671,7 @@ function selectFilter(selection) {
         //replace the text if it is the same category AND not a compare all
         else if(old === index) {
             $(this).text(displayText);
+            $(this).attr('data-name', text);
             found = true;
             return true;
         }
@@ -629,13 +680,13 @@ function selectFilter(selection) {
     //add a new one if the the category is not in filters
     if(!found) {
         $(curDrop[0]).addClass('activeFilter');
-
         filterList.append(html);
         //delete filter on click
         $('.filterList p').bind('click', function() {
             twoRowsCompare = false;
             $(this).remove();
             resetMenuColor(this);
+            // console.log('delete it yo');
             updateData();
         });
     }
@@ -688,8 +739,19 @@ function showResponse(d) {
     hideResponse();
     selectedCircle = this;
     d3.select(this).classed('selectedCircle', true);
-    $('.displayInfo .mainResponse').text(d.response);
-    if(d.comments_num > 0) {
+
+    //make p tags for the multi line responses
+    var splits = d.response.split('\\n'),
+        newP = '';
+    for(var i = 0; i < splits.length; i++) {
+        if(splits[i].substring(0,3) !== '[[[') {
+            newP+= '<span>' + splits[i] + '</span><br>'; 
+        }
+    }
+
+    $('.displayInfo .mainResponse').html(newP);
+    if(d.replies.length > 0) {
+        populateComments(d.replies);
         $('.displayInfo .viewComments').show();
     }
     else {
@@ -711,7 +773,15 @@ function hideResponse() {
     }
 }
 
+function populateComments(replies) {
+    $('.allComments').empty();
+    var comments = replies.split('\\\\');
 
+    for(var i = 0; i < comments.length; i++) {
+        var comment = '<p>' + comments[i] + '</p>';
+        $('.allComments').append(comment);
+    }
+}
 
 
 
@@ -808,7 +878,7 @@ function deleteLabel(d) {
 function recharge() {
     force.charge(function(d){
         if(d.label) {
-            return -Math.pow(d.len, 2.0) * 6;
+            return -Math.pow(d.len, 2.0) * 4;
         }
         var sz = radiusScale(d.popular);
         return -Math.pow(sz, 2.0) / 2.0;
@@ -851,12 +921,12 @@ function moveToCenter(alph) {
 
 //setup a word cloud
 function setupCloud() {
+
     var minFreq = wordCloudWords[wordCloudWords.length - 1].frequency,
         maxFreq = wordCloudWords[0].frequency;
 
     wordColorScale = d3.scale.quantize().domain([0,1]).range(aidan);
     wordSizeScale = d3.scale.linear().domain([minFreq,maxFreq]).range([smallWord,bigWord]);
-    
     var cloudW = 0,
         cloudH = 0;
 
@@ -864,6 +934,10 @@ function setupCloud() {
         var frac = wordCloudWords.length / wordLimit;
         cloudW = (frac * width * 0.5) + width * 0.5;
         cloudH = (frac * height * 0.5) + height * 0.5;
+    }
+    else {
+        cloudW = width * 0.9;
+        cloudH = height * 0.9;
     }
     d3.layout.cloud()
         .size([cloudW, cloudH])
@@ -1092,7 +1166,6 @@ function setupEvents(){
     });
     $('.wrapper').click(function() {
         dropdown.removeClass('active');
-        
     });
     //help button
     $('.helpButton').bind('click', function() {

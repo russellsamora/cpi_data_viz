@@ -409,26 +409,30 @@ input[type=text] {
     left: 0;
 }
 .mission2 {
-    left: 200px;
+    left: 220px;
 }
 .mission3 {
-    left: 400px;
+    left: 440px;
 }
 .mission4 {
-    left: 600px;
+    left: 660px;
 }
 .challengeInfo ul li {
     padding: 5px;
-    width: 200px;
+    width: 220px;
+}
+.challengeInfo ul li:nth-child(even) a {
+    color: rgb(219, 252, 196);
 }
 .challengeInfo ul li a {
     font-family: 'default-gothic', sans-serif;
-    font-size: 1.2em;
+    font-size: 1.1em;
     cursor: pointer;
+    color: #333;
 }
 .challengeInfo ul li.missionTitle {
     /*color: #EA446A;*/
-    color: #333;
+    color: #efefef;
     font-size: 1.6em;
     font-family: 'vinyl', sans-serif;
 }
@@ -462,14 +466,18 @@ input[type=text] {
 }
 .displayInfo p {
     padding: 10px;
-    margin-bottom: 20px;
+    padding-right: 25px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
     color: #eee;
+    line-height: 1.5em;
 }
 .displayInfo .viewComments {
     text-align: center;
-    margin: 0 auto;
+    margin: 20px auto;
     padding: 5px;
     border-radius: 10px;
+    font-size: 1em;
     background: #EA446A;
     color: #fff;
     width: 120px;
@@ -479,7 +487,15 @@ input[type=text] {
     display: none;
     min-height: 100px;
     max-height: 360px;
+    width: 90%;
+    margin: 0 auto;
+    border-radius: 5px;
+    background: #666;
     overflow: auto;
+}
+.displayInfo .allComments p {
+    padding: 10px;
+    font-size: 1em;
 }
 .displayInfo a {
     text-decoration: none;
@@ -593,4 +609,7 @@ h2.currentViz {
 }
 .helpArea .content p.centerText {
     text-align: center;
+}
+.demographics {
+    display: none;
 }
