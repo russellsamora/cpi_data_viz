@@ -178,7 +178,6 @@ function setPropertiesFromData() {
         bigData[i].focus = 1;
         bigData[i].tokens = getTokens(bigData[i].response);
         bigData[i].score = parseInt(bigData[i].score, 10);
-        bigData[i].comparative = parseFloat(bigData[i].comparative);
         bigData[i].replies_num = parseInt(bigData[i].replies_num, 10);
         bigData[i].likes_num = parseInt(bigData[i].likes_num, 10);
         bigData[i].popular = parseInt(bigData[i].popular, 10);
@@ -309,14 +308,49 @@ function changeChallenge(cur) {
 
     var challengeId = challenges[cur].challenge_id;
     challengeData = nestedData[challengeId];
-    nodesData = challengeData;
 
+    /**** NEW EXCESSIVE WAY TO MAKE SURE THE SAME USER STAYS IN PLACE **/
+    //go through nodes data, if exists in challenge, update
+    //go through challenge data, still there, push to nodes
+    var n = 0,
+        nLength = nodesData.length,
+        c = 0,
+        cLength = challengeData.length;
+
+    var newData = [];
+    while(n < nLength) {
+        for(var i = 0; i < cLength; i++) {
+            // console.log(nodesDat[n].user_id, challeng)
+            if(nodesData[n].user_id === challengeData[i].user_id) {
+                challengeData[i].added = true;
+                nodesData[n].challenge_id = challengeData[i].challenge_id;
+                nodesData[n].likes_num = challengeData[i].likes_num;
+                nodesData[n].replies_num = challengeData[i].replies_num;
+                nodesData[n].response = challengeData[i].response;
+                nodesData[n].replies = challengeData[i].replies;
+                nodesData[n].popular = challengeData[i].popular;
+                nodesData[n].score = challengeData[i].score;
+                nodesData[n].tokens = challengeData[i].tokens;
+                newData.push(nodesData[n]);
+                continue;
+            }
+        }
+        n++;
+    }
+    while(c < cLength) {
+        if(!challengeData[c].added) {
+            newData.push(challengeData[c]);
+        }
+        c++;
+    }
+
+    nodesData = [];
+    nodesData = newData;
+    //nodesData = challengeData;
     getMaxMin();
     force.nodes(nodesData);
     updateData();
     calculateStats();
-
-    start();
 }
 
 //get stats for the current challenge
@@ -341,10 +375,9 @@ function setScales() {
     //scale down the size of the circles based on the screen dimensions and max # comments
     // var max = (Math.floor(height * 0.04)) > maxMaxRadius ? maxMaxRadius : max;
     var frac = (1 / challengeData.length);
-    var val = Math.floor(height * frac) * 10;
+    var val = Math.floor(height * frac) * 6;
     var max = val > maxMaxRadius ? maxMaxRadius : val;
     var maxRadius =  max > (minRadius * 2) ? max : (minRadius * 2);
-    console.log(val,max);
     radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
     //radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
     colorScalePos = d3.scale.quantize().domain([0, maxSent]).range(aidanPos);
@@ -380,7 +413,44 @@ function start(filter) {
     nodesEl = nodesEl.data(force.nodes(), function(d,i) {
         return d.user_id;
     });
+
+
+        /**** UPDATE *****/
+    //select all circles, update their radius and color
+    // console.log('***** UPDATE *****');
+    d3.selectAll('.node')
+        .select('circle')
+        .transition(2000)
+        .attr('r', function(d){
+            if(d.label) {
+                //based the size on the number of letters
+                return d.len;
+            }
+            return radiusScale(d.popular);
+        })
+         .style('fill', function(d,i) {
+            var s = d.score;
+            if(d.label === true) {
+                return 'rgba(0,0,0,0)';
+            }
+            if(s === 0) {
+                return 'rgb(180,180,180)';
+            }
+            else if(s < 0) {
+                return colorScaleNeg(s);
+            }
+            else {
+                return colorScalePos(s);
+            }
+        });
+    d3.selectAll('.label')
+        .select('text')
+        .text(function(d) {
+            return d.name;
+        });
+
     /***** ENTER *****/
+    // console.log('***** ENTER *****');
     var g = nodesEl.enter().append('g')
         .classed('node', true)
         .classed('label', function(d,i) {
@@ -395,16 +465,14 @@ function start(filter) {
                 //based the size on the number of letters
                 return d.len;
             }
+            // console.log('enter: ',d.user_id);
             return radiusScale(d.popular);
-            // return radiusScale((d.replies_num + d.likes_num));
         })
         .style('fill', function(d,i) {
-            // var s = colorScale(parseInt(d.comparative,10));
             var s = d.score;
             if(d.label) {
                 return 'rgba(0,0,0,0)';
             }
-            
             if(s === 0) {
                 return 'rgb(180,180,180)';
             }
@@ -414,7 +482,6 @@ function start(filter) {
             else {
                 return colorScalePos(s);
             }
-            
         })
         .call(force.drag)
         .on('click', showResponse);
@@ -451,42 +518,6 @@ function start(filter) {
             return '#222';
         });
 
-    
-    /**** UPDATE *****/
-    //select all circles, update their radius and color
-    d3.selectAll('.node')
-        .select('circle')
-        .transition(2000)
-        .attr('r', function(d){
-            if(d.label) {
-                //based the size on the number of letters
-                return d.len;
-            }
-            return radiusScale(d.popular);
-        })
-         .style('fill', function(d,i) {
-            // var s = colorScale(parseInt(d.comparative,10));
-            var s = d.score;
-
-            //console.log(d.comparative,s);
-            if(d.label === true) {
-                return 'rgba(0,0,0,0)';
-            }
-            if(s === 0) {
-                return 'rgb(180,180,180)';
-            }
-            else if(s < 0) {
-                return colorScaleNeg(s);
-            }
-            else {
-                return colorScalePos(s);
-            }
-        });
-    d3.selectAll('.label')
-        .select('text')
-        .text(function(d) {
-            return d.name;
-        });
     /***** EXIT ****/
     nodesEl.exit()
         .transition()
@@ -567,7 +598,6 @@ function updateData() {
                         }
                         else {
                             var value = tempUser[currentFilters[a].category];
-                            console.log(value);
                             if(value !== currentFilters[a].name) {
                                 nodesData[i].focus = 2;
                                 continue;
@@ -599,7 +629,6 @@ function compareAll(sibs, categoryName) {
             var txtVal = $(this).text().toLowerCase();
             filterValues.push(txtVal);
         });
-        
         compareLabels(filterValues);
         var nodesL = nodesData.length,
             i = 0;
@@ -1116,7 +1145,8 @@ function resize(first) {
     height = $(window).height();
 
     //make sure our comments popup changes to stay within the bounds of the browser
-    $('.allComments').css('max-height', height - 300);
+    // $('.allComments').css('max-height', height - 300);
+    $('.box').css('max-height', height - 180);
     //adjust sizes of viz and wrapper
     
     viz.attr('width', width-1).attr('height', height - 118);
@@ -1194,7 +1224,7 @@ function setupEvents(){
         }
     });
 
-    //click off dropdown
+    //click off dropdown or response box
     vizContainer.click(function() {
         dropdown.removeClass('active');
         if(challengeInfo.is('.challengeDropdown')) {
