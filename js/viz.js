@@ -245,11 +245,10 @@ function populateChallenges() {
             var num = $(this).attr('data-num');
             $('.downButton').toggleClass('rotateNinety');
             challengeInfo.toggleClass('challengeDropdown');
+            $('.challengeInfo ul').fadeOut(100);
             setTimeout(function() {
                 changeChallenge(num);
-            }, 150);
-            $('.challengeInfo ul').fadeOut(100, function() {
-            });
+            }, 250);
         }
         return false;
     });
@@ -289,7 +288,25 @@ function changeChallenge(cur) {
     $('.tool').css('opacity', 1);
     hideResponse();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
-    $('.challengeQuestion').text(challenges[cur].challenge_question);
+    var qLength = challenges[cur].challenge_question.length,
+        fontSize = 12;
+    //shrink down question size
+    if(qLength > 450) {
+        fontSize = 12;
+    }
+    else if(qLength > 350) {
+        fontS = 14;
+    }
+    else if(qLength > 250) {
+        fontSize = 15;
+    }
+    else {
+        fontSize = 16;
+    }
+    $('.challengeQuestion p').css('font-size', fontSize);
+    $('.challengeQuestion p').text(challenges[cur].challenge_question);
+
+    $('.challengeQuestion').fadeIn(100);
     challengeData = [];
     $('.wrapper-dropdown span').removeClass('activeFilter');
     compare = false;
@@ -307,6 +324,7 @@ function changeChallenge(cur) {
     }
 
     var challengeId = challenges[cur].challenge_id;
+    challengeData = [];
     challengeData = nestedData[challengeId];
 
     /**** NEW EXCESSIVE WAY TO MAKE SURE THE SAME USER STAYS IN PLACE **/
@@ -337,10 +355,14 @@ function changeChallenge(cur) {
         }
         n++;
     }
+    var num = 0;
     while(c < cLength) {
         if(!challengeData[c].added) {
             newData.push(challengeData[c]);
+            num++;
         }
+        //must reset for next time?
+        challengeData[c].added = false;
         c++;
     }
 
@@ -375,7 +397,7 @@ function setScales() {
     //scale down the size of the circles based on the screen dimensions and max # comments
     // var max = (Math.floor(height * 0.04)) > maxMaxRadius ? maxMaxRadius : max;
     var frac = (1 / challengeData.length);
-    var val = Math.floor(height * frac) * 6;
+    var val = Math.floor(height * frac) * 5;
     var max = val > maxMaxRadius ? maxMaxRadius : val;
     var maxRadius =  max > (minRadius * 2) ? max : (minRadius * 2);
     radiusScale = d3.scale.linear().domain([0,maxPopular]).range([minRadius,maxRadius]);
@@ -655,7 +677,7 @@ function selectSearch(selection) {
         'background-position': '0px'
     });
     hideResponse();
-    var text = $('.searchField').val(),
+    var text = $('.searchField').val().toLowerCase(),
             displayText = '{' + text + '}',
             html = '<p data-compare="0" data-padre=999 data-name="' + text + '">' + displayText + '</p>';
 
@@ -794,7 +816,6 @@ function updateNodeOpacity(comparing) {
 
 //display the response of the selected node
 function showResponse(d) {
-
     if(d.label) {
         deleteLabel(d);
         return;
@@ -813,7 +834,7 @@ function showResponse(d) {
         else {
             //no comment in a map challenge
             if(splits.length < 2) {
-                newP+= '<span>no respone</span>';
+                newP+= '<span>no response</span>';
             }
         }
     }
@@ -947,6 +968,10 @@ function deleteLabel(d) {
 function recharge() {
     force.charge(function(d){
         if(d.label) {
+            if(d.len > 12) {
+                console.log('pow');
+                return -Math.pow(d.len, 2.0);
+            }
             return -Math.pow(d.len, 2.0) * 4;
         }
         var sz = radiusScale(d.popular);
@@ -969,10 +994,10 @@ function moveToCenter(alph) {
                 tempFocus = d.focus < tempFoci ? d.focus : d.focus - (tempFoci-1);
             targetX = Math.floor(tempFocus / (tempFoci+1) * width);
             if(d.focus < tempFoci) {
-                targetY = height * 0.4;
+                targetY = height * 0.3;
             }
             else {
-                targetY = height * 0.6;
+                targetY = height * 0.5;
             }
         }
         else {
@@ -1146,13 +1171,13 @@ function resize(first) {
 
     //make sure our comments popup changes to stay within the bounds of the browser
     // $('.allComments').css('max-height', height - 300);
-    $('.box').css('max-height', height - 180);
+    $('.box').css('max-height', height - 250);
     //adjust sizes of viz and wrapper
     
     viz.attr('width', width-1).attr('height', height - 118);
     wrapper.css('height', height-118);
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) - 50;
+    centerY = Math.floor(height / 2) - 100;
     
     //if its not our first time (not on init), then we stop the motion, and do our resize timer
     if(!first && ready) {
@@ -1166,7 +1191,7 @@ function resize(first) {
 function resizeEnd() {
     
     centerX = Math.floor(width / 2);
-    centerY = Math.floor(height / 2) - 50;
+    centerY = Math.floor(height / 2) - 100;
     
     //reset the scales accordingly for cirlce sizes
     setScales();
@@ -1288,6 +1313,7 @@ function setupEvents(){
 
     //view more comments
     $('.viewComments').bind('click', function() {
+        justClicked = true;
         if(showingComments) {
             $(this).text('view comments');
             showingComments = false;
@@ -1296,7 +1322,6 @@ function setupEvents(){
             $(this).text('hide comments');
             showingComments = true;
         }
-        
         $('.allComments').toggle();
     });
 
@@ -1353,4 +1378,9 @@ function setupEvents(){
             $(this).addClass('currentMode');
         }
     });
+
+    $('.mainResponse').bind('click', function() {
+        hideResponse();
+    });
+
 }
