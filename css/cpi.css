@@ -623,3 +623,13 @@ h2.currentViz {
 .demographics {
     display: none;
 }
+.imageInResponse{
+    text-align: center;
+}
+.imageInResponse img {
+    max-width: 550px;
+    max-height: 350px;
+}
+.cloud text {
+    cursor: pointer;
+}

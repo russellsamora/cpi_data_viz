@@ -54,9 +54,9 @@ var currentInfo = null,
     vizMode = 0,
     maxSent = 0,
     minSent = 0,
-    aidan = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)', 'rgb(180,180,180)', 'rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
-    aidanNeg = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)'],
-    aidanPos = ['rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
+    aidan = ['#1884A8', '#1885AA', '#1FA8D6', '#44BCE4'],
+    aidanPos = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)'],
+    aidanNeg = ['rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
     ignoreWords = ['myself','our','ours','ourselves','you','your','yours','yourself','yourselves','him','his','himself','she','her','hers','herself','its','itself','they','them','their','theirs','themselves','what','which','who','whom','whose','this','that','these','those','are','was','were','been','being','have','has','had','having','does','did','doing','will','would','should','can','could','ought','i\'m','you\'re','he\'s','she\'s','it\'s','we\'re','they\'re','i\'ve','you\'ve','we\'ve','they\'ve','i\'d','you\'d','he\'d','she\'d','we\'d','they\'d','i\'ll','you\'ll','he\'ll','she\'ll','we\'ll','they\'ll','isn\'t','aren\'t','wasn\'t','weren\'t','hasn\'t','haven\'t','hadn\'t','doesn\'t','don\'t','didn\'t','won\'t','wouldn\'t','shan\'t','shouldn\'t','can\'t','cannot','couldn\'t','mustn\'t','let\'s','that\'s','who\'s','what\'s','here\'s','there\'s','when\'s','where\'s','why\'s','how\'s','the','and','but','because','until','while','for','with','about','against','between','into','through','during','before','after','above','below','from','upon','down','out','off','over','under','again','further','then','once','here','there','when','where','why','how','all','any','both','each','few','more','most','other','some','such','nor','not','only','own','same','than','too','very','say','says','said','shall'];
     ignore = null,
     twoRowsCompare = false,
@@ -98,7 +98,7 @@ function init() {
     nodesEl = bubbleViz.selectAll('.node');
     resize(true);
     setupForce();
-    d3.csv('/data/responses.csv',function(csv) {
+    d3.csv('/data/responses_new.csv',function(csv) {
         bigData = csv;
         setPropertiesFromData();
     })
@@ -349,6 +349,7 @@ function changeChallenge(cur) {
                 nodesData[n].popular = challengeData[i].popular;
                 nodesData[n].score = challengeData[i].score;
                 nodesData[n].tokens = challengeData[i].tokens;
+                nodesData[n].media = challengeData[i].media;
                 newData.push(nodesData[n]);
                 continue;
             }
@@ -671,15 +672,21 @@ function compareAll(sibs, categoryName) {
 }
 
 //add the keyword search to the filters and then update the data
-function selectSearch(selection) {
+function selectSearch(selection, fromCloud) {
     $('.formShape').css({
         opacity: 0.3,
         'background-position': '0px'
     });
     hideResponse();
-    var text = $('.searchField').val().toLowerCase(),
-            displayText = '{' + text + '}',
-            html = '<p data-compare="0" data-padre=999 data-name="' + text + '">' + displayText + '</p>';
+    var text = null;
+    if(fromCloud) {
+        text = fromCloud;
+    }
+    else {
+        text = $('.searchField').val().toLowerCase();
+    }
+    var displayText = '{' + text + '}',
+        html = '<p data-compare="0" data-padre=999 data-name="' + text + '">' + displayText + '</p>';
 
         //go thru each filter, check it data-padre matches index
         $('.filterList p').each(function(i) {
@@ -839,6 +846,10 @@ function showResponse(d) {
         }
     }
 
+    //add image
+    if(d.media.length > 0) {
+        newP += '<p class="imageInResponse"><img src="' + d.media + '">';
+    }
     $('.displayInfo .mainResponse').html(newP);
     if(d.replies.length > 0) {
         populateComments(d.replies);
@@ -1064,9 +1075,21 @@ function drawCloud(words) {
             .attr('transform', function(d) {
                 return 'translate(' + [d.x, d.y] + ')';
             })
-            .text(function(d) { return d.text; });
+            .text(function(d) { return d.text; })
+            .on('click', backToBubbles);
 }
 
+function backToBubbles(d) {
+    selectSearch(false, d.text);
+    if(challengeShowing && vizMode !== 0) {
+        $('.cloud').fadeOut(function() {
+            $('.bubbles').fadeIn();
+        });
+        vizMode = 0;
+        $('.tool').removeClass('currentMode');
+        $('.bubbleMode').addClass('currentMode');
+    }
+}
 //creates a list of words to ignore
 function createIgnoreList() {
     var ignoreCount = ignoreWords.length;
@@ -1379,7 +1402,7 @@ function setupEvents(){
         }
     });
 
-    $('.mainResponse').bind('click', function() {
+    $('.mainResponse, .allComments, .imageInResponse').bind('click', function() {
         hideResponse();
     });
 
