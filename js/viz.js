@@ -79,7 +79,8 @@ var demoFilterData = null,
     demoUsers = 0,
     demoChallenges = null,
     demoZips = null,
-    demoPies = null;
+    demoPies = null,
+    demoGovernment = null;
 
 //init and set most click events and stuff
 $(function() {
@@ -204,6 +205,46 @@ function refineUsers(firstUsers) {
                     }
                     else {
                         tempUser.challenges_completed = '80% - 100%';
+                    }
+                }
+                if(prop === 'communication_with_government') {
+                    var com = tempUser[prop];
+                    if(com === 'no communication') {
+                        tempUser.communication_with_government = 'none';
+                    }
+                    else if(com === 'yes, by email') {
+                        tempUser.communication_with_government = 'email';
+                    }
+                    else if(com === 'yes, by letter') {
+                        tempUser.communication_with_government = 'letter';
+                    }
+                    else if(com === 'yes, by phone') {
+                        tempUser.communication_with_government = 'phone';
+                    }
+                    else if(com === 'yes, through community meetings') {
+                        tempUser.communication_with_government = 'community meetings';
+                    }
+                    else if(com === 'yes, through personal meetings') {
+                        tempUser.communication_with_government = 'personal meetings';
+                    }
+                    else if(com === 'yes, through social media') {
+                        tempUser.communication_with_government = 'social media';
+                    }
+                }
+                if(prop === 'zip_code') {
+                    var tempZip = tempUser[prop];
+
+                    if(tempZip.length !== 5) {
+                        tempUser.zip_code = 'unspecified';
+                    }
+                    else {
+                        //this will be replaced
+                        if(tempZip === '01970') {
+                            tempUser.zip_code = 'inside';
+                         }
+                         else {
+                            tempUser.zip_code = 'outside';
+                        }
                     }
                 }
             }
@@ -1576,6 +1617,29 @@ function resetDemoData() {
         "60% - 80%": 0,
         "80% - 100%": 0
     };
+    demoPies = {
+        worked_in_planning: {
+            "yes": 0,
+            "no": 0,
+            "unspecified": 0
+        },
+        prior_participation: {
+            "yes": 0,
+            "no": 0,
+            "unspecified": 0
+        }
+    };
+    demoGovernment = {
+        "none": 0,
+        "other": 0,
+        "unspecified": 0,
+        "email": 0,
+        "letter": 0,
+        "phone": 0,
+        "community meetings": 0,
+        "personal meetings": 0,
+        "social media": 0
+    };
     demoFilterArray = {
         age: [],
         stake: [],
@@ -1583,6 +1647,11 @@ function resetDemoData() {
         income: [],
         gender: [],
         education: []
+    };
+    demoZips = {
+        "inside": 0,
+        "outside": 0,
+        "unspecified": 0
     };
     demoUsers = 0;
     totalCoins = 0;
@@ -1607,8 +1676,11 @@ function updateDemographicData() {
                 demoFilterData['stake'][rawUsers[u].stake[s]] +=1;
             }
             demoChallenges[rawUsers[u].challenges_completed] += 1;
+            demoGovernment[rawUsers[u].communication_with_government] += 1;
+            demoPies['prior_participation'][rawUsers[u].prior_participation] += 1;
+            demoPies['worked_in_planning'][rawUsers[u].worked_in_planning] += 1;
+            demoZips[rawUsers[u].zip_code] += 1;
             demoUsers++;
-
             totalCoins += rawUsers[u].coins;
         }
         u++;
