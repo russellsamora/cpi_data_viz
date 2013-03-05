@@ -54,7 +54,7 @@ var currentInfo = null,
     vizMode = 0,
     maxSent = 0,
     minSent = 0,
-    aidan = ['#1884A8', '#1885AA', '#1FA8D6', '#44BCE4'],
+    aidan = ['#1884A8', '#1885AA', '#777', '#aaa'],
     aidanPos = ['rgb(129, 169, 101)', 'rgb(181, 212, 160)'],
     aidanNeg = ['rgb(250, 153, 176)' ,'rgb(234, 68, 106)'],
     ignoreWords = ['myself','our','ours','ourselves','you','your','yours','yourself','yourselves','him','his','himself','she','her','hers','herself','its','itself','they','them','their','theirs','themselves','what','which','who','whom','whose','this','that','these','those','are','was','were','been','being','have','has','had','having','does','did','doing','will','would','should','can','could','ought','i\'m','you\'re','he\'s','she\'s','it\'s','we\'re','they\'re','i\'ve','you\'ve','we\'ve','they\'ve','i\'d','you\'d','he\'d','she\'d','we\'d','they\'d','i\'ll','you\'ll','he\'ll','she\'ll','we\'ll','they\'ll','isn\'t','aren\'t','wasn\'t','weren\'t','hasn\'t','haven\'t','hadn\'t','doesn\'t','don\'t','didn\'t','won\'t','wouldn\'t','shan\'t','shouldn\'t','can\'t','cannot','couldn\'t','mustn\'t','let\'s','that\'s','who\'s','what\'s','here\'s','there\'s','when\'s','where\'s','why\'s','how\'s','the','and','but','because','until','while','for','with','about','against','between','into','through','during','before','after','above','below','from','upon','down','out','off','over','under','again','further','then','once','here','there','when','where','why','how','all','any','both','each','few','more','most','other','some','such','nor','not','only','own','same','than','too','very','say','says','said','shall'];
@@ -286,6 +286,7 @@ function changeChallenge(cur) {
     challengeShowing = true;
     userMessage.hide();
     $('.tool').css('opacity', 1);
+    $('.demographicMode').css('opacity', 0.3);
     hideResponse();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     var qLength = challenges[cur].challenge_question.length,
@@ -1165,8 +1166,10 @@ function sortedWords(input, callback) {
 
 //return a list of words to the response extracting non words
 function getTokens(input) {
-    results = [],
-    split = input.replace(/[^a-zA-Z ]+/g, '')
+    var results = [],
+        split = input.replace('\\n','')
+            .replace(/\'s/g, '')
+            .replace(/[^a-zA-Z ]+/g, '')
             .replace('/ {2,}/',' ')
             .toLowerCase()
             .split(' ');
@@ -1391,15 +1394,15 @@ function setupEvents(){
         }
     });
     $('.demographicMode').bind('click', function() {
-        if(challengeShowing && vizMode !== 2) {
-            $('.cloud').fadeOut();
-            $('.bubbles').fadeOut(function() {
-                $('.demographics').fadeIn();
-            });
-            vizMode = 2;
-            $('.tool').removeClass('currentMode');
-            $(this).addClass('currentMode');
-        }
+        // if(challengeShowing && vizMode !== 2) {
+        //     $('.cloud').fadeOut();
+        //     $('.bubbles').fadeOut(function() {
+        //         $('.demographics').fadeIn();
+        //     });
+        //     vizMode = 2;
+        //     $('.tool').removeClass('currentMode');
+        //     $(this).addClass('currentMode');
+        // }
     });
 
     $('.mainResponse, .allComments, .imageInResponse').bind('click', function() {
