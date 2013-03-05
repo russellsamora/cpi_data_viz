@@ -32,7 +32,7 @@ var currentInfo = null,
     maxPopular = 0,
     radiusScale = null,
     minRadius = 8,
-    maxMaxRadius = 80,
+    maxMaxRadius = 50,
     resizeTimer = null,
     challenges = null,
     users = null,
@@ -60,9 +60,8 @@ var currentInfo = null,
     ignoreWords = ['myself','our','ours','ourselves','you','your','yours','yourself','yourselves','him','his','himself','she','her','hers','herself','its','itself','they','them','their','theirs','themselves','what','which','who','whom','whose','this','that','these','those','are','was','were','been','being','have','has','had','having','does','did','doing','will','would','should','can','could','ought','i\'m','you\'re','he\'s','she\'s','it\'s','we\'re','they\'re','i\'ve','you\'ve','we\'ve','they\'ve','i\'d','you\'d','he\'d','she\'d','we\'d','they\'d','i\'ll','you\'ll','he\'ll','she\'ll','we\'ll','they\'ll','isn\'t','aren\'t','wasn\'t','weren\'t','hasn\'t','haven\'t','hadn\'t','doesn\'t','don\'t','didn\'t','won\'t','wouldn\'t','shan\'t','shouldn\'t','can\'t','cannot','couldn\'t','mustn\'t','let\'s','that\'s','who\'s','what\'s','here\'s','there\'s','when\'s','where\'s','why\'s','how\'s','the','and','but','because','until','while','for','with','about','against','between','into','through','during','before','after','above','below','from','upon','down','out','off','over','under','again','further','then','once','here','there','when','where','why','how','all','any','both','each','few','more','most','other','some','such','nor','not','only','own','same','than','too','very','say','says','said','shall'];
     ignore = null,
     twoRowsCompare = false,
-    stats = null;
-
-    var debug = 0;
+    stats = null,
+    cityPath = null;
 
 //init and set most click events and stuff
 $(function() {
@@ -90,6 +89,8 @@ $(function() {
 
 //init the d3 and load in data
 function init() {
+    //get data name for this game
+    cityPath = '/data/' + $('body').attr('data-city') + '/';
     //setup d3
     createIgnoreList();
     viz = d3.select('.wrapper').append('svg');
@@ -98,7 +99,8 @@ function init() {
     nodesEl = bubbleViz.selectAll('.node');
     resize(true);
     setupForce();
-    d3.csv('/data/responses_new.csv',function(csv) {
+    var responsePath = cityPath + 'responses.csv';
+    d3.csv(responsePath,function(csv) {
         bigData = csv;
         setPropertiesFromData();
     })
@@ -195,7 +197,8 @@ function setPropertiesFromData() {
 //load the user and challenge data
 function loadUsers() {
     //load demographic user info
-    d3.csv('/data/users.csv',function(csv_users) {
+    var usersPath = cityPath + 'users.csv';
+    d3.csv(usersPath, function(csv_users) {
         //refine user data (ie. changing birth year to age range etc.)
         var refinedUsers = refineUsers(csv_users);
         users = d3.nest()
@@ -211,7 +214,8 @@ function loadUsers() {
 }
 
 function loadChallenges() {
-    d3.csv('/data/challenges.csv',function(csv_challenges) {
+    var challengesPath = cityPath + 'challenges.csv';
+    d3.csv(challengesPath, function(csv_challenges) {
         challenges = csv_challenges;
         populateChallenges();
         //now all the data is ready, fade out the user message box
