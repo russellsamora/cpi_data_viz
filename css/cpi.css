@@ -12,7 +12,7 @@ body{
     overflow: hidden;
 }
 nav {
-    z-index: 9999;
+    z-index: 500;
 }
 a{
     text-decoration: none;
@@ -132,7 +132,7 @@ svg {
     border-left: 5px solid #ccc;
     cursor: pointer;
     outline: none;
-    z-index: 999;
+    z-index: 501;
 }
 .wrapper-search {
     position: relative; /* Enable absolute positionning for children and pseudo elements */
@@ -146,7 +146,7 @@ svg {
     border-left: 5px solid #ccc;
     outline: none;
     height: 37px;
-    z-index: 999;
+    z-index: 510;
 }
 
 .submitSearch {
@@ -632,4 +632,29 @@ h2.currentViz {
 }
 .cloud text {
     cursor: pointer;
+}
+.demoHelp {
+    display: none;
+    width: 100%;
+    height: 76px;
+    min-width: 1024px;
+    background: #555;
+    position: absolute;
+    z-index: 600;
+    top: 40px;
+    border-bottom: 2px solid #555;
+    border-bottom: 2px solid rgba(0,0,0,0.3);
+}
+.demoText {
+    display: none;
+    width: 100%;
+    height: 76px;
+    min-width: 1024px;
+    background: #888;
+    color: #fff;
+    position: absolute;
+    z-index: 599;
+    top: 116px;
+    border-bottom: 2px solid #555;
+    border-bottom: 2px solid rgba(0,0,0,0.3);
 }

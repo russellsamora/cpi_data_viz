@@ -48,7 +48,7 @@ var currentInfo = null,
     wordSizeScale = null,
     wordLimit = 150,
     smallWord = 16,
-    bigWord = 30,
+    bigWord = 40,
     bubbleViz = null,
     demographicViz = null,
     vizMode = 0,
@@ -62,6 +62,24 @@ var currentInfo = null,
     twoRowsCompare = false,
     stats = null,
     cityPath = null;
+
+//demographic specific variables
+var demoFilterData = null,
+    demoFilterDonut = null,
+    demographicFilters = [],
+    rawUsers = [],
+    innerRadius = 0,
+    outerRadius = 0,
+    arc = null,
+    donut = null,
+    demoFilterArray = null,
+    totalCoins = 0,
+    averageCoins = 0,
+    numUsers = 0,
+    demoUsers = 0,
+    demoChallenges = null,
+    demoZips = null,
+    demoPies = null;
 
 //init and set most click events and stuff
 $(function() {
@@ -130,7 +148,6 @@ function refineUsers(firstUsers) {
                 if(prop === 'birth_year') {
                     tempUser.age = 'unspecified';
                 }
-
             }
             else {
                 tempUser[prop] = tempUser[prop].toLowerCase();
@@ -164,6 +181,31 @@ function refineUsers(firstUsers) {
                     }
                     tempUser[prop] = splits;
                 }
+                if(prop === 'education') {
+                    var newEducation = tempUser[prop].replace(/\'/g, '');
+                    tempUser.education = newEducation;
+                }
+                if(prop === 'coins') {
+                    tempUser.coins = parseInt(tempUser[prop], 10);
+                }
+                if(prop === 'challenges_completed') {
+                    var percent = parseInt(tempUser[prop],10);
+                    if(percent < 10) {
+                        tempUser.challenges_completed = '0% - 20%';
+                    }
+                    else if(percent < 40) {
+                        tempUser.challenges_completed = '20% - 40%';
+                    }
+                    else if(percent < 60) {
+                        tempUser.challenges_completed = '40% - 60%';
+                    }
+                    else if(percent < 80) {
+                        tempUser.challenges_completed = '60% - 80%';
+                    }
+                    else {
+                        tempUser.challenges_completed = '80% - 100%';
+                    }
+                }
             }
         }
         i++;
@@ -176,6 +218,7 @@ function setPropertiesFromData() {
     var bigL = bigData.length,
         i = 0;
 
+    var num = 0;
     while(i < bigL) {
         bigData[i].focus = 1;
         bigData[i].tokens = getTokens(bigData[i].response);
@@ -200,6 +243,8 @@ function loadUsers() {
     var usersPath = cityPath + 'users.csv';
     d3.csv(usersPath, function(csv_users) {
         //refine user data (ie. changing birth year to age range etc.)
+        rawUsers = csv_users;
+        numUsers = csv_users.length;
         var refinedUsers = refineUsers(csv_users);
         users = d3.nest()
         .key(function(d) {
@@ -207,9 +252,10 @@ function loadUsers() {
         })
         .map(refinedUsers);
 
+
         //load challenge info
         loadChallenges();
-        setupDemographic();
+        setupDemographics();
     });
 }
 
@@ -274,14 +320,6 @@ function setupForce() {
     recharge();
 }
 
-//create the d3 layout for the demographic visualization
-function setupDemographic(){
-    demographicViz = viz.append('g')
-        .classed('demographics', true);
-}
-
-
-
 /**** CHALLENGE CHANGING ****/
 
 //change the challenge and reset a lot of things
@@ -290,7 +328,6 @@ function changeChallenge(cur) {
     challengeShowing = true;
     userMessage.hide();
     $('.tool').css('opacity', 1);
-    $('.demographicMode').css('opacity', 0.3);
     hideResponse();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     var qLength = challenges[cur].challenge_question.length,
@@ -412,6 +449,9 @@ function setScales() {
     colorScaleNeg = d3.scale.quantize().domain([minSent, 0]).range(aidanNeg);
 
     bigWord = Math.floor(width / 20);
+    var tempW = width / 16;
+    innerRadius = Math.floor(tempW - (tempW / 3) - 20);
+    outerRadius = Math.floor(tempW - 20);
 }
 
 //figure out the max and min for the popularity, sentiment of responses
@@ -1398,19 +1438,214 @@ function setupEvents(){
         }
     });
     $('.demographicMode').bind('click', function() {
-        // if(challengeShowing && vizMode !== 2) {
-        //     $('.cloud').fadeOut();
-        //     $('.bubbles').fadeOut(function() {
-        //         $('.demographics').fadeIn();
-        //     });
-        //     vizMode = 2;
-        //     $('.tool').removeClass('currentMode');
-        //     $(this).addClass('currentMode');
-        // }
+        if(challengeShowing && vizMode !== 2) {
+            $('.cloud').fadeOut();
+            $('.bubbles').fadeOut(function() {
+                $('.demoHelp, .demoText').fadeIn();
+                $('.demographics').fadeIn();
+                resetDemographics();
+            });
+            vizMode = 2;
+            $('.tool').removeClass('currentMode');
+            $(this).addClass('currentMode');
+        }
     });
 
     $('.mainResponse, .allComments, .imageInResponse').bind('click', function() {
         hideResponse();
     });
-
 }
+
+
+
+
+
+/***** DEMOGRAPHICS *****/
+//create the d3 layout for the demographic visualization
+function setupDemographics(){
+    resetDemoData();
+    demographicViz = viz.append('g')
+        .classed('demographics', true);
+
+    demoFilterDonut = {
+        gender: null,
+        age: null,
+        race: null,
+        income: null,
+        stake: null,
+        education: null
+    };
+    demoFilterDonut.gender = demographicViz.append('g')
+        .classed('gender', true);
+    demoFilterDonut.age = demographicViz.append('g')
+        .classed('age', true);
+    demoFilterDonut.race = demographicViz.append('g')
+        .classed('race', true);
+    demoFilterDonut.income = demographicViz.append('g')
+        .classed('income', true);
+    demoFilterDonut.education = demographicViz.append('g')
+        .classed('education', true);
+    demoFilterDonut.stake = demographicViz.append('g')
+        .classed('stake', true);
+
+    //universal pie
+    donut = d3.layout.pie()
+    .sort(null)
+    .value(function(d) {
+        return d.quantity;
+    });
+
+    //universal arc size
+    arc = d3.svg.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+
+    updateDemographicData();
+}
+function resetDemographics() {
+    arc.innerRadius(innerRadius)
+        .outerRadius(outerRadius);
+}
+function showCategory(d) {
+    console.log(d.data.category);
+}
+
+function hideCategory(d) {
+    console.log('remove');
+}
+function resetDemoData() {
+    demoFilterData = {
+        age: {
+            "under 18": 0,
+            "18-30": 0,
+            "31-40": 0,
+            "41-50": 0,
+            "over 50": 0,
+            "unspecified": 0
+        },
+        gender: {
+            "male": 0,
+            "female": 0,
+            "unspecified": 0
+        },
+        stake: {
+            "business owner": 0,
+            "community organizer or activist": 0,
+            "educator": 0,
+            "resident": 0,
+            "observer": 0,
+            "religious leader": 0,
+            "student": 0,
+            "volunteer": 0,
+            "worker": 0,
+            "unspecified": 0
+        },
+        income: {
+            "$0 - $25k": 0,
+            "$25k - $50k": 0,
+            "$50k - $75k": 0,
+            "$75k - $100k": 0,
+            "over $100k": 0,
+            "unspecified": 0
+        },
+        education: {
+            "high school or less": 0,
+            "some college": 0,
+            "associates degree": 0,
+            "bachelors degree": 0,
+            "professional degree": 0,
+            "masters degree": 0,
+            "doctoral degree": 0,
+            "unspecified": 0
+        },
+        race: {
+            "black or african american": 0,
+            "asian": 0,
+            "hispanic, latino, or spanish": 0,
+            "white": 0,
+            "multiracial": 0,
+            "american indian or alaskan native": 0,
+            "other": 0,
+            "unspecified": 0
+        }
+    };
+    demoChallenges = {
+        "0% - 20%": 0,
+        "20% - 40%": 0,
+        "40% - 60%": 0,
+        "60% - 80%": 0,
+        "80% - 100%": 0
+    };
+    demoFilterArray = {
+        age: [],
+        stake: [],
+        race: [],
+        income: [],
+        gender: [],
+        education: []
+    };
+    demoUsers = 0;
+    totalCoins = 0;
+    averageCoins = 0;
+}
+
+function updateDemographicData() {
+    //filter down users based on DEMOGRAPHIC filters
+    resetDemoData();
+    var u = 0;
+    while(u < numUsers) {
+        var useMe = true;
+        for(var i = 0; i < demographicFilters.length; i++) {
+        }
+        if(useMe) {
+            demoFilterData['age'][rawUsers[u].age] += 1;
+            demoFilterData['race'][rawUsers[u].race] += 1;
+            demoFilterData['gender'][rawUsers[u].gender] += 1;
+            demoFilterData['income'][rawUsers[u].income] += 1;
+            demoFilterData['education'][rawUsers[u].education] += 1;
+            for(var s = 0; s < rawUsers[u].stake.length; s++) {
+                demoFilterData['stake'][rawUsers[u].stake[s]] +=1;
+            }
+            demoChallenges[rawUsers[u].challenges_completed] += 1;
+            demoUsers++;
+
+            totalCoins += rawUsers[u].coins;
+        }
+        u++;
+    }
+    for(var d in demoFilterData) {
+        for(var a in demoFilterData[d]) {
+            var newVal = {'category': a, 'quantity': demoFilterData[d][a]};
+            demoFilterArray[d].push(newVal);
+        }
+    }
+    averageCoins = Math.floor(totalCoins / demoUsers);
+    updateCharts();
+}
+
+function updateCharts() {
+    console.log(demoFilterData);
+    var px = (width / 7),
+        cur = 0;
+    for(var category in demoFilterDonut) {
+        cur++;
+        var pxVal = cur * px,
+            pyVal = outerRadius + 20;
+        demoFilterDonut[category].attr("transform", "translate(" + pxVal + "," + pyVal + ")");
+
+        var path = demoFilterDonut[category].selectAll("path")
+        .data(donut(demoFilterArray[category]))
+        .enter().append("path")
+        .attr("fill", function(d, i) {
+            var r = Math.floor(Math.random() * 255),
+                g = Math.floor(Math.random() * 255),
+                b = Math.floor(Math.random() * 255),
+                val = 'rgb(' + r + ',' + g + ',' + b + ')';
+            return val;
+        })
+        .attr("d", arc)
+        .on('mouseover', showCategory)
+        .on('mouseout', hideCategory);
+    }
+}
+
