@@ -66,13 +66,15 @@ var currentInfo = null,
 //demographic specific variables
 var demoFilterData = null,
     demoFilterDonut = null,
+    demoFilterArray = null,
+    demoChallengesBars = null,
     demographicFilters = [],
+    demoChallengesArray = null,
     rawUsers = [],
     innerRadius = 0,
     outerRadius = 0,
     arc = null,
     donut = null,
-    demoFilterArray = null,
     totalCoins = 0,
     averageCoins = 0,
     numUsers = 0,
@@ -1470,6 +1472,7 @@ function setupEvents(){
     $('.cloudMode').bind('click', function() {
         if(challengeShowing && vizMode !== 1) {
             $('.demographics').fadeOut();
+            hideResponse();
             $('.bubbles').fadeOut(function() {
                 compileWords();
             });
@@ -1484,7 +1487,6 @@ function setupEvents(){
             $('.bubbles').fadeOut(function() {
                 $('.demoHelp, .demoText').fadeIn();
                 $('.demographics').fadeIn();
-                resetDemographics();
             });
             vizMode = 2;
             $('.tool').removeClass('currentMode');
@@ -1505,6 +1507,7 @@ function setupEvents(){
 //create the d3 layout for the demographic visualization
 function setupDemographics(){
     resetDemoData();
+
     demographicViz = viz.append('g')
         .classed('demographics', true);
 
@@ -1516,6 +1519,7 @@ function setupDemographics(){
         stake: null,
         education: null
     };
+
     demoFilterDonut.gender = demographicViz.append('g')
         .classed('gender', true);
     demoFilterDonut.age = demographicViz.append('g')
@@ -1529,6 +1533,9 @@ function setupDemographics(){
     demoFilterDonut.stake = demographicViz.append('g')
         .classed('stake', true);
 
+    demoChallengesBars = demographicViz.append('g')
+        .classed('challenges', true);
+
     //universal pie
     donut = d3.layout.pie()
     .sort(null)
@@ -1536,24 +1543,27 @@ function setupDemographics(){
         return d.quantity;
     });
 
+    resetDemoSizes();
+    updateDemographicData(true);
+}
+
+function resetDemoSizes() {
     //universal arc size
+    var px = (width / 7),
+        cur = 0;
+    for(var category in demoFilterDonut) {
+        cur++;
+        var pxVal = cur * px,
+            pyVal = outerRadius + 20;
+        demoFilterDonut[category].attr("transform", "translate(" + pxVal + "," + pyVal + ")");
+    }
     arc = d3.svg.arc()
     .innerRadius(innerRadius)
     .outerRadius(outerRadius);
 
-    updateDemographicData();
-}
-function resetDemographics() {
-    arc.innerRadius(innerRadius)
-        .outerRadius(outerRadius);
-}
-function showCategory(d) {
-    console.log(d.data.category);
+    //set dimensions of things here (scale it yo)
 }
 
-function hideCategory(d) {
-    console.log('remove');
-}
 function resetDemoData() {
     demoFilterData = {
         age: {
@@ -1640,6 +1650,18 @@ function resetDemoData() {
         "personal meetings": 0,
         "social media": 0
     };
+
+    demoZips = {
+        "inside": 0,
+        "outside": 0,
+        "unspecified": 0
+    };
+
+    demoUsers = 0;
+    totalCoins = 0;
+    averageCoins = 0;
+
+    //reset data arrays
     demoFilterArray = {
         age: [],
         stake: [],
@@ -1648,23 +1670,61 @@ function resetDemoData() {
         gender: [],
         education: []
     };
-    demoZips = {
-        "inside": 0,
-        "outside": 0,
-        "unspecified": 0
-    };
-    demoUsers = 0;
-    totalCoins = 0;
-    averageCoins = 0;
+    demoChallengesArray = [];
 }
 
-function updateDemographicData() {
+function showCategory(d) {
+    console.log(d.data.category);
+}
+
+function hideCategory(d) {
+    console.log('remove');
+}
+
+function updateDemoFilters(d) {
+    //if already in demo filters, then update it
+    var found = false;
+    for(var i = 0; i < demographicFilters.length; i++) {
+        if(demographicFilters[i].category === d.data.filter) {
+            demographicFilters[i].value = d.data.category;
+            found = true;
+            continue;
+        }
+    }
+    if(!found) {
+        demographicFilters.push({category: d.data.filter, value: d.data.category});
+    }
+    updateDemographicData();
+}
+
+function updateDemographicData(first) {
     //filter down users based on DEMOGRAPHIC filters
     resetDemoData();
+    var demoFilterStakeHack = false;
     var u = 0;
     while(u < numUsers) {
         var useMe = true;
+
         for(var i = 0; i < demographicFilters.length; i++) {
+            //check for stake first since this could be multiple
+            if(demographicFilters[i].category === 'stake') {
+                demoFilterStakeHack = demographicFilters[i].value;
+                var foundStake = false;
+                for(var t = 0; t < rawUsers[u].stake.length; t++) {
+                    if(rawUsers[u]['stake'][t] === demographicFilters[i].value) {
+                        foundStake = true;
+                        continue;
+                    }
+                }
+                if(!foundStake) {
+                    useMe = false;
+                }
+            }
+            else {
+                if(rawUsers[u][demographicFilters[i].category] !== demographicFilters[i].value) {
+                    useMe = false;
+                }
+            }
         }
         if(useMe) {
             demoFilterData['age'][rawUsers[u].age] += 1;
@@ -1672,9 +1732,18 @@ function updateDemographicData() {
             demoFilterData['gender'][rawUsers[u].gender] += 1;
             demoFilterData['income'][rawUsers[u].income] += 1;
             demoFilterData['education'][rawUsers[u].education] += 1;
-            for(var s = 0; s < rawUsers[u].stake.length; s++) {
-                demoFilterData['stake'][rawUsers[u].stake[s]] +=1;
+
+            //special case where user can be multiple has special cases :)
+            if(demoFilterStakeHack) {
+                //only add if it is the same as demo filter
+                demoFilterData['stake'][demoFilterStakeHack] +=1;
             }
+            else {
+                for(var s = 0; s < rawUsers[u].stake.length; s++) {
+                    demoFilterData['stake'][rawUsers[u].stake[s]] +=1;
+                }
+            }
+
             demoChallenges[rawUsers[u].challenges_completed] += 1;
             demoGovernment[rawUsers[u].communication_with_government] += 1;
             demoPies['prior_participation'][rawUsers[u].prior_participation] += 1;
@@ -1685,39 +1754,98 @@ function updateDemographicData() {
         }
         u++;
     }
+    //put the values in an array for actual viz
+    //demofilters
     for(var d in demoFilterData) {
         for(var a in demoFilterData[d]) {
-            var newVal = {'category': a, 'quantity': demoFilterData[d][a]};
+            var newVal = {category: a, quantity: demoFilterData[d][a], filter: d};
             demoFilterArray[d].push(newVal);
         }
     }
+    //challenges
+    for(var c in demoChallenges) {
+        var newVal2 = {category: c, quantity: demoChallenges[c]};
+        demoChallengesArray.push(newVal2);
+    }
     averageCoins = Math.floor(totalCoins / demoUsers);
-    updateCharts();
+    if(first) {
+        setupCharts();
+    }
+    else {
+        updateCharts();
+
+    }
+}
+
+function setupCharts() {
+    setupPies();
 }
 
 function updateCharts() {
-    console.log(demoFilterData);
+    updatePies();
+    //updateBars();
+}
+
+function setupPies(){
     var px = (width / 7),
         cur = 0;
     for(var category in demoFilterDonut) {
         cur++;
-        var pxVal = cur * px,
+        var pxVal = cur * px - 32,
             pyVal = outerRadius + 20;
         demoFilterDonut[category].attr("transform", "translate(" + pxVal + "," + pyVal + ")");
 
         var path = demoFilterDonut[category].selectAll("path")
         .data(donut(demoFilterArray[category]))
         .enter().append("path")
-        .attr("fill", function(d, i) {
-            var r = Math.floor(Math.random() * 255),
-                g = Math.floor(Math.random() * 255),
-                b = Math.floor(Math.random() * 255),
-                val = 'rgb(' + r + ',' + g + ',' + b + ')';
-            return val;
-        })
-        .attr("d", arc)
-        .on('mouseover', showCategory)
-        .on('mouseout', hideCategory);
+            .attr("fill", function(d, i) {
+                var r = Math.floor(Math.random() * 255),
+                    g = Math.floor(Math.random() * 255),
+                    b = Math.floor(Math.random() * 255),
+                    val = 'rgb(' + r + ',' + g + ',' + b + ')';
+                return val;
+            })
+            // .each(function(d) { this._current = d.quantity; }) // store the initial values
+            .attr("d", arc)
+            .on('mouseover', showCategory)
+            .on('mouseout', hideCategory)
+            .on('click', updateDemoFilters)
+            .each(function(d) { this._current = d; });
     }
 }
 
+
+function updatePies() {
+    console.log(demoFilterArray);
+    for(var category in demoFilterDonut) {
+        var path = demoFilterDonut[category].selectAll("path")
+            .data(donut(demoFilterArray[category]))
+            .transition().duration(750).attrTween('d', arcTween);
+    }
+}
+
+function arcTween(a) {
+  var i = d3.interpolate(this._current, a);
+  this._current = i(0);
+  return function(t) {
+    return arc(i(t));
+  };
+}
+
+function updateBars() {
+    demoChallengesBars.attr("transform", "translate(100,100)")
+        .selectAll("rect")
+       .data(demoChallengesArray)
+       .enter()
+       .append("rect")
+       .attr("x", function(d, i) {
+            return i * 20;
+       })
+       .attr("y", function(d) {
+            return 300 - d.quantity * .5;
+       })
+       .attr("width", 16)
+       .attr("height", function(d) {
+            return d.quantity * .5;
+       });
+}
