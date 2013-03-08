@@ -64,25 +64,40 @@ var currentInfo = null,
     cityPath = null;
 
 //demographic specific variables
-var demoFilterData = null,
+var demoColors = ['rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)', 'rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)'];
+    demoFilterData = null,
     demoFilterDonut = null,
     demoFilterArray = null,
     demoChallengesBars = null,
     demographicFilters = [],
     demoChallengesArray = null,
+    demoText = null,
     rawUsers = [],
     innerRadius = 0,
     outerRadius = 0,
     arc = null,
+    pieArc = null,
+    govArc = null,
     donut = null,
     totalCoins = 0,
-    averageCoins = 0,
+    totalResponses = 0,
     numUsers = 0,
     demoUsers = 0,
     demoChallenges = null,
     demoZips = null,
+    demoZipsGroup = null,
     demoPies = null,
-    demoGovernment = null;
+    demoPiesData = null,
+    demoPiesArray = null,
+    demoGovernment = null,
+    demoGovernmentData = null,
+    demoGovernmentArray = null,
+    challengeScale = null,
+    zipsScale = null,
+    thirds = 0,
+    demoWrapper = null,
+    demoZipsArray = null,
+    filterLocations = {'gender': [0,0], 'age': [1,0], 'race': [0,1], 'stake': [1,1], 'income': [0,2], 'education': [1,2]};
 
 //init and set most click events and stuff
 $(function() {
@@ -208,6 +223,7 @@ function refineUsers(firstUsers) {
                     else {
                         tempUser.challenges_completed = '80% - 100%';
                     }
+                    tempUser.total_responses = Math.floor(percent * 0.01 * challenges.length);
                 }
                 if(prop === 'communication_with_government') {
                     var com = tempUser[prop];
@@ -240,8 +256,8 @@ function refineUsers(firstUsers) {
                         tempUser.zip_code = 'unspecified';
                     }
                     else {
-                        //this will be replaced
-                        if(tempZip === '01970') {
+                        //this will be replaced (but in index file in data body)
+                        if(tempZip === '19143') {
                             tempUser.zip_code = 'inside';
                          }
                          else {
@@ -276,7 +292,7 @@ function setPropertiesFromData() {
             return d.challenge_id;
         })
         .map(bigData);
-    loadUsers();
+    loadChallenges();
     setScales();
 }
 
@@ -297,8 +313,14 @@ function loadUsers() {
 
 
         //load challenge info
-        loadChallenges();
         setupDemographics();
+        //now all the data is ready, fade out the user message box
+        userMessage.fadeOut(1000, function() {
+            $(this).text('Select a challenge above to begin!');
+            $(this).fadeIn(200, function() {
+                ready = true;
+            });
+        });
     });
 }
 
@@ -307,13 +329,7 @@ function loadChallenges() {
     d3.csv(challengesPath, function(csv_challenges) {
         challenges = csv_challenges;
         populateChallenges();
-        //now all the data is ready, fade out the user message box
-        userMessage.fadeOut(1000, function() {
-            $(this).text('Select a challenge above to begin!');
-            $(this).fadeIn(200, function() {
-                ready = true;
-            });
-        });
+        loadUsers();
     });
 }
 
@@ -492,9 +508,14 @@ function setScales() {
     colorScaleNeg = d3.scale.quantize().domain([minSent, 0]).range(aidanNeg);
 
     bigWord = Math.floor(width / 20);
-    var tempW = width / 16;
-    innerRadius = Math.floor(tempW - (tempW / 3) - 20);
-    outerRadius = Math.floor(tempW - 20);
+}
+function setDemoScales() {
+    //demo scales
+    var tempH = Math.floor((height - 140) / 7);
+    innerRadius = tempH-tempH/2;
+    outerRadius = tempH;
+
+    resetDemoSizes();
 }
 
 //figure out the max and min for the popularity, sentiment of responses
@@ -1113,7 +1134,7 @@ function moveToCenter(alph) {
 
 //setup a word cloud
 function setupCloud() {
-
+    $('.cloud').remove();
     var minFreq = wordCloudWords[wordCloudWords.length - 1].frequency,
         maxFreq = wordCloudWords[0].frequency;
 
@@ -1165,6 +1186,8 @@ function drawCloud(words) {
             })
             .text(function(d) { return d.text; })
             .on('click', backToBubbles);
+
+        $('.cloud').fadeIn();
 }
 
 function backToBubbles(d) {
@@ -1298,6 +1321,7 @@ function resize(first) {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(resizeEnd, 1000);
     }
+    thirds = (height / 3) - 40;
 }
 
 //resize delay function so we don't call this EVERY resize trigger
@@ -1309,6 +1333,9 @@ function resizeEnd() {
     //reset the scales accordingly for cirlce sizes
     setScales();
     
+    //setDemo
+    setDemoScales();
+
     //change size and positions of circles
     viz.selectAll('circle')
         .attr('r', function(d,i) {
@@ -1319,6 +1346,7 @@ function resizeEnd() {
     force.start();
 
     viz.select('.cloud').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+
 }
 
 //highlight label text
@@ -1460,8 +1488,10 @@ function setupEvents(){
     //tool button click
     $('.bubbleMode').bind('click', function() {
         if(challengeShowing && vizMode !== 0) {
-            $('.demographics').fadeOut();
-            $('.cloud').fadeOut(function() {
+            hideResponse();
+            $('.userDemographics').fadeOut(100,function() {
+                $('.questions').fadeIn();
+                $('.cloud').fadeOut();
                 $('.bubbles').fadeIn();
             });
             vizMode = 0;
@@ -1471,9 +1501,10 @@ function setupEvents(){
     });
     $('.cloudMode').bind('click', function() {
         if(challengeShowing && vizMode !== 1) {
-            $('.demographics').fadeOut();
             hideResponse();
-            $('.bubbles').fadeOut(function() {
+            $('.userDemographics').fadeOut(100,function() {
+                $('.questions').fadeIn();
+                $('.bubbles').fadeOut();
                 compileWords();
             });
             vizMode = 1;
@@ -1483,10 +1514,10 @@ function setupEvents(){
     });
     $('.demographicMode').bind('click', function() {
         if(challengeShowing && vizMode !== 2) {
-            $('.cloud').fadeOut();
-            $('.bubbles').fadeOut(function() {
-                $('.demoHelp, .demoText').fadeIn();
-                $('.demographics').fadeIn();
+            // $('.cloud').fadeOut();
+            // $('.bubbles').fadeOut(function() {
+            $('.questions').fadeOut(function() {
+                $('.userDemographics').fadeIn();
             });
             vizMode = 2;
             $('.tool').removeClass('currentMode');
@@ -1508,7 +1539,8 @@ function setupEvents(){
 function setupDemographics(){
     resetDemoData();
 
-    demographicViz = viz.append('g')
+    demoWrapper = d3.select('.userDemographics').append('svg').attr('width', width-1).attr('height', height-38);
+    demographicViz = demoWrapper.append('g')
         .classed('demographics', true);
 
     demoFilterDonut = {
@@ -1518,6 +1550,11 @@ function setupDemographics(){
         income: null,
         stake: null,
         education: null
+    };
+
+    demoPies = {
+        worked_in_planning: null,
+        prior_participation: null
     };
 
     demoFilterDonut.gender = demographicViz.append('g')
@@ -1533,8 +1570,18 @@ function setupDemographics(){
     demoFilterDonut.stake = demographicViz.append('g')
         .classed('stake', true);
 
+    demoPies.worked_in_planning = demographicViz.append('g')
+        .classed('worked', true);
+    demoPies.prior_participation = demographicViz.append('g')
+        .classed('prior', true);
+
+    demoGovernment = demographicViz.append('g')
+        .classed('government', true);
+
     demoChallengesBars = demographicViz.append('g')
         .classed('challenges', true);
+
+    demoText = $('.userDemographics').append('<div class = "demoText"><p class="num_users"></p><p class="total_coins"></p><p class="average_coins"></p><p class="total_responses"></p><p class="average_responses"></p>')
 
     //universal pie
     donut = d3.layout.pie()
@@ -1543,25 +1590,41 @@ function setupDemographics(){
         return d.quantity;
     });
 
-    resetDemoSizes();
+    demoZipsGroup = demographicViz.append('g')
+        .classed('zips', true);
+
+    setDemoScales();
     updateDemographicData(true);
 }
 
 function resetDemoSizes() {
+    demoWrapper.attr('width', width-1).attr('height', height-38);
     //universal arc size
-    var px = (width / 7),
-        cur = 0;
     for(var category in demoFilterDonut) {
-        cur++;
-        var pxVal = cur * px,
-            pyVal = outerRadius + 20;
-        demoFilterDonut[category].attr("transform", "translate(" + pxVal + "," + pyVal + ")");
+        //use data sheet above
+        var locX = filterLocations[category][0] * (outerRadius * 2.2) + outerRadius + 20,
+            locY = filterLocations[category][1] * (outerRadius * 2.5) + outerRadius + 20;
+        demoFilterDonut[category].attr("transform", "translate(" + locX + "," + locY + ")");
     }
+
+    demoGovernment.attr("transform", "translate(" + (outerRadius * 7 + 20) + "," + (20 + outerRadius * 3.5) + ")");
+    demoPies.worked_in_planning.attr("transform", "translate(" + (outerRadius * 6 + 20) + "," + (outerRadius * 6 + 20) + ")");
+    demoPies.prior_participation.attr("transform", "translate(" + (outerRadius * 8 + 20) + "," + (outerRadius * 6 + 20) + ")");
     arc = d3.svg.arc()
     .innerRadius(innerRadius)
     .outerRadius(outerRadius);
 
-    //set dimensions of things here (scale it yo)
+    pieArc = d3.svg.arc()
+    .innerRadius(0)
+    .outerRadius(outerRadius * .66);
+
+    govArc = d3.svg.arc()
+    .innerRadius(0)
+    .outerRadius(outerRadius * 1.33);
+
+    demoZipsGroup.attr("transform", "translate(" + (outerRadius * 5 + 20) + "," + (20 + outerRadius/2) + ")");
+
+    demoChallengesBars.attr('transform', 'translate(' + (outerRadius * 10 + 20) + ',' + (20 + outerRadius * 2) + ')');
 }
 
 function resetDemoData() {
@@ -1627,7 +1690,7 @@ function resetDemoData() {
         "60% - 80%": 0,
         "80% - 100%": 0
     };
-    demoPies = {
+    demoPiesData = {
         worked_in_planning: {
             "yes": 0,
             "no": 0,
@@ -1639,7 +1702,7 @@ function resetDemoData() {
             "unspecified": 0
         }
     };
-    demoGovernment = {
+    demoGovernmentData = {
         "none": 0,
         "other": 0,
         "unspecified": 0,
@@ -1659,7 +1722,7 @@ function resetDemoData() {
 
     demoUsers = 0;
     totalCoins = 0;
-    averageCoins = 0;
+    totalResponses = 0;
 
     //reset data arrays
     demoFilterArray = {
@@ -1671,10 +1734,16 @@ function resetDemoData() {
         education: []
     };
     demoChallengesArray = [];
+    demoGovernmentArray = [];
+    demoZipsArray = [];
+    demoPiesArray = {
+        worked_in_planning: [],
+        prior_participation: []
+    };
 }
 
-function showCategory(d) {
-    console.log(d.data.category);
+function showCategory(d,e) {
+    console.log(d,e);
 }
 
 function hideCategory(d) {
@@ -1683,16 +1752,32 @@ function hideCategory(d) {
 
 function updateDemoFilters(d) {
     //if already in demo filters, then update it
+    console.log(d);
     var found = false;
     for(var i = 0; i < demographicFilters.length; i++) {
-        if(demographicFilters[i].category === d.data.filter) {
+        //our pies have nested data
+        if(d.data) {
+            if(demographicFilters[i].category === d.data.filter) {
             demographicFilters[i].value = d.data.category;
             found = true;
             continue;
+            }
+        }
+        else {
+            if(demographicFilters[i].category === d.filter) {
+                demographicFilters[i].value = d.data.category;
+                found = true;
+                continue;
+            }
         }
     }
     if(!found) {
-        demographicFilters.push({category: d.data.filter, value: d.data.category});
+        if(d.data) {
+            demographicFilters.push({category: d.data.filter, value: d.data.category});
+        }
+        else {
+            demographicFilters.push({category: d.filter, value: d.category});
+        }
     }
     updateDemographicData();
 }
@@ -1745,11 +1830,12 @@ function updateDemographicData(first) {
             }
 
             demoChallenges[rawUsers[u].challenges_completed] += 1;
-            demoGovernment[rawUsers[u].communication_with_government] += 1;
-            demoPies['prior_participation'][rawUsers[u].prior_participation] += 1;
-            demoPies['worked_in_planning'][rawUsers[u].worked_in_planning] += 1;
+            demoGovernmentData[rawUsers[u].communication_with_government] += 1;
+            demoPiesData['prior_participation'][rawUsers[u].prior_participation] += 1;
+            demoPiesData['worked_in_planning'][rawUsers[u].worked_in_planning] += 1;
             demoZips[rawUsers[u].zip_code] += 1;
             demoUsers++;
+            totalResponses += rawUsers[u].total_responses;
             totalCoins += rawUsers[u].coins;
         }
         u++;
@@ -1762,65 +1848,105 @@ function updateDemographicData(first) {
             demoFilterArray[d].push(newVal);
         }
     }
+    //prior pies
+    for(var p in demoPiesData) {
+        for(var b in demoPiesData[p]) {
+            var newVal1 = {category: b, quantity: demoPiesData[p][b], filter: p};
+            demoPiesArray[p].push(newVal1);
+        }
+    }
     //challenges
     for(var c in demoChallenges) {
-        var newVal2 = {category: c, quantity: demoChallenges[c]};
+        var newVal2 = {category: c, quantity: demoChallenges[c], filter: 'challenges_completed'};
         demoChallengesArray.push(newVal2);
     }
+    //zips
+    var previous = 0;
+    for(var z in demoZips) {
+        var newVal3 = {category: z, quantity: demoZips[z], previous: previous, filter: 'zip_code'};
+        previous += newVal3.quantity;
+        demoZipsArray.push(newVal3);
+    }
+    //gov
+    for(var g in demoGovernmentData) {
+        var newVal4 = {category: g, quantity: demoGovernmentData[g], filter: 'communication_with_government'};
+        demoGovernmentArray.push(newVal4);
+    }
+
     averageCoins = Math.floor(totalCoins / demoUsers);
     if(first) {
         setupCharts();
     }
     else {
         updateCharts();
-
     }
 }
 
 function setupCharts() {
+    setupDonuts();
+    setupBars();
     setupPies();
+    setupZips();
+    updateText();
 }
 
 function updateCharts() {
+    updateDonuts();
     updatePies();
-    //updateBars();
+    updateZips();
+    updateBars();
+    updateText();
 }
 
-function setupPies(){
-    var px = (width / 7),
-        cur = 0;
-    for(var category in demoFilterDonut) {
-        cur++;
-        var pxVal = cur * px - 32,
-            pyVal = outerRadius + 20;
-        demoFilterDonut[category].attr("transform", "translate(" + pxVal + "," + pyVal + ")");
+function updateText() {
+    averageCoins = Math.floor(totalCoins / demoUsers);
+    averageResponses = Math.floor(totalResponses / demoUsers);
+    $('.num_users').html('<span>' + demoUsers + '</span>' + ' users');
+    $('.total_coins').html(totalCoins + ' coins earned');
+    $('.average_coins').html(averageCoins + ' coins per user');
+    $('.total_responses').html(totalResponses + ' responses left');
+    $('.average_responses').html(averageResponses + ' responses per user');
+}
 
+function setupDonuts(){
+    for(var category in demoFilterDonut) {
         var path = demoFilterDonut[category].selectAll("path")
         .data(donut(demoFilterArray[category]))
         .enter().append("path")
             .attr("fill", function(d, i) {
-                var r = Math.floor(Math.random() * 255),
-                    g = Math.floor(Math.random() * 255),
-                    b = Math.floor(Math.random() * 255),
-                    val = 'rgb(' + r + ',' + g + ',' + b + ')';
-                return val;
+                if(d.data.category === 'unspecified') {
+                    return 'rgb(180,180,180)';
+                }
+                else {
+                    return demoColors[i];
+                }
             })
             // .each(function(d) { this._current = d.quantity; }) // store the initial values
             .attr("d", arc)
             .on('mouseover', showCategory)
             .on('mouseout', hideCategory)
             .on('click', updateDemoFilters)
+            .classed('clickMe', true)
             .each(function(d) { this._current = d; });
+
+        demoFilterDonut[category].append('text')
+            .text(function(d) {
+                return category;
+            })
+            // .on('click', something)
+            .attr('dy', '.3em')
+            .style('text-anchor', 'middle')
+            .style('fill', function(d) {
+                return '#222';
+            });
     }
 }
 
-
-function updatePies() {
-    console.log(demoFilterArray);
+function updateDonuts() {
     for(var category in demoFilterDonut) {
         var path = demoFilterDonut[category].selectAll("path")
             .data(donut(demoFilterArray[category]))
-            .transition().duration(750).attrTween('d', arcTween);
+            .transition().duration(1000).attrTween('d', arcTween);
     }
 }
 
@@ -1832,20 +1958,151 @@ function arcTween(a) {
   };
 }
 
+function setupZips() {
+    var zipTotal = (demoZipsArray[0].quantity + demoZipsArray[1].quantity + demoZipsArray[2].quantity);
+    demoZipsGroup.selectAll('rect')
+        .data(demoZipsArray, function(d) {
+            return d.category;
+        })
+        .enter()
+        .append('rect')
+        .attr('x', function(d,i) {
+            return d.previous / zipTotal * (outerRadius * 4);
+        })
+        .attr('y', 20)
+        .attr('width', function(d,i) {
+            return d.quantity / zipTotal * (outerRadius * 4);
+        })
+        .attr('height', function() {
+            return outerRadius - innerRadius;
+        })
+        .style('fill', function(d, i) {
+            return demoColors[i];
+        })
+        .classed('clickMe', true)
+        .on('click', updateDemoFilters);
+}
+
+function updateZips() {
+    var zipTotal = (demoZipsArray[0].quantity + demoZipsArray[1].quantity + demoZipsArray[2].quantity);
+    demoZipsGroup.selectAll('rect')
+        .data(demoZipsArray, function(d) {
+            return d.category;
+        })
+        .transition().duration(1000)
+        .attr('x', function(d,i) {
+            return d.previous / zipTotal * (outerRadius * 4);
+        })
+        .attr('width', function(d,i) {
+            return d.quantity / zipTotal * (outerRadius * 4);
+        })
+}
+
+function setupBars() {
+    var maxC = d3.max(demoChallengesArray, function(d,i) {
+        return d.quantity;
+    });
+    challengeScale = d3.scale.linear().domain([0,maxC]).range([0,(outerRadius * 3)]);
+
+    demoChallengesBars
+        .selectAll('rect')
+        .data(demoChallengesArray)
+        .enter()
+        .append('rect')
+        .attr('x', function(d, i) {
+            return i * ((outerRadius - innerRadius) + 5);
+        })
+        .attr('y', function(d) {
+            return (outerRadius * 3) - challengeScale(d.quantity);
+        })
+        .attr('width', function() {
+            return (outerRadius - innerRadius);
+        })
+        .attr('height', function(d) {
+            return challengeScale(d.quantity);
+        })
+        .style('fill', demoColors[3])
+        .classed('clickMe', true)
+        .on('click', updateDemoFilters);
+}
+
 function updateBars() {
-    demoChallengesBars.attr("transform", "translate(100,100)")
-        .selectAll("rect")
-       .data(demoChallengesArray)
-       .enter()
-       .append("rect")
-       .attr("x", function(d, i) {
-            return i * 20;
-       })
-       .attr("y", function(d) {
-            return 300 - d.quantity * .5;
-       })
-       .attr("width", 16)
-       .attr("height", function(d) {
-            return d.quantity * .5;
-       });
+    demoChallengesBars.selectAll('rect')
+        .data(demoChallengesArray)
+        .transition().duration(1000)
+        .attr('y', function(d) {
+            return 200 - challengeScale(d.quantity);
+        })
+        .attr('height', function(d) {
+            return challengeScale(d.quantity);
+        });
+}
+
+function setupPies() {
+    for(var category in demoPies) {
+        var path = demoPies[category].selectAll("path")
+        .data(donut(demoPiesArray[category]))
+        .enter().append("path")
+            .attr("fill", function(d, i) {
+                if(d.data.category === 'unspecified') {
+                    return 'rgb(180,180,180)';
+                }
+                else {
+                    return demoColors[i];
+                }
+            })
+            // .each(function(d) { this._current = d.quantity; }) // store the initial values
+            .attr("d", pieArc)
+            .on('mouseover', showCategory)
+            .on('mouseout', hideCategory)
+            .on('click', updateDemoFilters)
+            .classed('clickMe', true)
+            .each(function(d) { this._current = d; });
+    }
+
+    //gov
+    var path2 = demoGovernment.selectAll("path")
+        .data(donut(demoGovernmentArray))
+        .enter().append("path")
+            .attr("fill", function(d, i) {
+                if(d.data.category === 'unspecified') {
+                    return 'rgb(180,180,180)';
+                }
+                else {
+                    return demoColors[i];
+                }
+            })
+            // .each(function(d) { this._current = d.quantity; }) // store the initial values
+            .attr("d", govArc)
+            .on('mouseover', showCategory)
+            .on('mouseout', hideCategory)
+            .on('click', updateDemoFilters)
+            .each(function(d) { this._current = d; });
+}
+
+function updatePies() {
+    for(var category in demoPies) {
+        var path = demoPies[category].selectAll("path")
+            .data(donut(demoPiesArray[category]))
+            .transition().duration(1000).attrTween('d', pieArcTween);
+    }
+    var path2 = demoGovernment.selectAll("path")
+            .data(donut(demoGovernmentArray))
+            .transition().duration(1000).attrTween('d', govArcTween);
+}
+
+function pieArcTween(a) {
+  var i = d3.interpolate(this._current, a);
+  this._current = i(0);
+  return function(t) {
+    return pieArc(i(t));
+  };
+}
+
+function govArcTween(a) {
+  var i = d3.interpolate(this._current, a);
+  this._current = i(0);
+  return function(t) {
+    return govArc(i(t));
+  };
 }

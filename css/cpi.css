@@ -12,7 +12,10 @@ body{
     overflow: hidden;
 }
 nav {
+    position: absolute;
+    top: 0;
     z-index: 500;
+    width: 100%;
 }
 a{
     text-decoration: none;
@@ -25,6 +28,8 @@ h1,h2,h3 {
 }
 
 .navigation {
+    position: absolute;
+    top: 0;
     background: #EA446A;
     color: #fff;
     width: 100%;
@@ -53,14 +58,14 @@ h1,h2,h3 {
 }
 .wrapper {
     position: absolute;
-    top: 114px;
+    top: 76px;
     left: 0;
     width: 100%;
     min-width: 1024px;
     min-height: 600px;
     z-index: -5;
 }
-svg {
+.wrapper svg {
     position: absolute;
     top: 76px;
     left: 0;
@@ -271,7 +276,7 @@ input[type=text] {
     border: solid 4px #555;
     border-radius: 10px;
     z-index: 2;
-    top: 200px;
+    bottom: 220px;
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
@@ -284,7 +289,7 @@ input[type=text] {
     border: solid 4px #555;
     border-radius: 10px;
     z-index: 2;
-    top: 260px;
+    bottom: 160px;
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
@@ -297,7 +302,7 @@ input[type=text] {
     border: solid 4px #555;
     border-radius: 10px;
     z-index: 2;
-    top: 320px;
+    bottom: 100px;
     right: 10px;
     cursor: pointer;
     opacity: 0.3;
@@ -350,7 +355,7 @@ input[type=text] {
     z-index: 9996;
     cursor: pointer;
 }
-.helpArea {
+.helpArea, .helpArea2 {
     display: none;
     z-index: 9999;
     background: #333;
@@ -620,9 +625,6 @@ h2.currentViz {
 .helpArea .content p.centerText {
     text-align: center;
 }
-.demographics {
-    display: none;
-}
 .imageInResponse{
     text-align: center;
 }
@@ -646,15 +648,33 @@ h2.currentViz {
     border-bottom: 2px solid rgba(0,0,0,0.3);
 }
 .demoText {
-    display: none;
-    width: 100%;
-    height: 76px;
-    min-width: 1024px;
-    background: #888;
-    color: #fff;
+    width: 320px;
+    color: #333;
     position: absolute;
-    z-index: 599;
-    top: 116px;
-    border-bottom: 2px solid #555;
-    border-bottom: 2px solid rgba(0,0,0,0.3);
+    z-index: 888;
+    top: 60px;
+    right: 20px;
+}
+.demoText p {
+    font-size: 1.5em;
+    text-align: right;
+    font-family: 'vinyl', sans-serif;
+}
+.demoText p span {
+    font-size: 2.2em;
+}
+.questions {
+    position: absolute;
+    top: 39px;
+    width: 100%;
+}
+.userDemographics {
+    display: none;
+    position: absolute;
+    top: 39px;
+    left: 0;
+    z-index: 1;
+}
+.clickMe {
+    cursor: pointer;
 }
