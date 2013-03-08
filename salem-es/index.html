@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Community PlanIt: Visualizaciones</title>
+        <script type='text/javascript' src='//use.typekit.net/yxm0fht.js'></script>
+        <script type='text/javascript'>try{Typekit.load();}catch(e){}</script>
+        
+        <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+        <meta name='description' content='Data Visualization to Community PlanIt'/>
+        <link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+        <link rel='stylesheet' href='../css/cpi.css' type='text/css'/>
+        <script src='../js/jquery-1.9.1.min.js'></script>
+        <script src='../js/d3.v3.min.js'></script>
+        <script src='../js/cloud.js'></script>
+        <script src='../js/viz-es.js'></script>
+        <!-- <meta name="google-translate-customization" content="27e36f3f3a4a0efc-9d5560169efbe982-gb7a0a5df82aedf7b-21"></meta> -->
+    </head>
+    <body data-city="salem-es">
+        <nav>
+            <div class = 'navigation'>
+                <h2>Community PlanIt: Visualizaciones de Recapitulaci&oacute;n</h2>
+                <ul>
+                    <li><a href='http://communityplanit.org'>Home</a></li>
+                    <li><a href='http://communityplanit.org/all'>All Games</a></li>
+                </ul>
+            </div>
+            <div class = 'challengeInfo'>
+                    <div class = 'challengeLink'>
+                        <img class='downButton rotateNinety' src='../img/down.png' alt=''>
+                        <h2 class='selectChallenge'>Seleccione un desaf&iacute;o</h2>
+                    </div>
+            </div>
+            <div class = 'filters'>
+                <h2>Filtros</h2>
+                <div id='drop_gender' class='wrapper-dropdown' tabindex='1'><span class = 'current'>G&eacute;nero</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Compare todos</a></li>
+                        <li><a href='#'>Masculino</a></li>
+                        <li><a href='#'>Femenino</a></li>
+                        <li><a href='#'>Sin especificar</a></li>
+                    </ul>
+                </div>
+                 <div id='drop_stake' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Estaca</span>
+                    <ul class='dropdown'>
+                        <!-- <li><a href='#'>Compare All</a></li> -->
+                        <li><a href='#'>Empresario</a></li>
+                        <li><a href='#'>Comunidad Organizer o Activista</a></li>
+                        <li><a href='#'>Educador</a></li>
+                        <li><a href='#'>Residente</a></li>
+                        <li><a href='#'>Observador</a></li>
+                        <li><a href='#'>L&iacute;der Religioso</a></li>
+                        <li><a href='#'>Estudiante</a></li>
+                        <li><a href='#'>Voluntario</a></li>
+                        <li><a href='#'>Obrero</a></li>
+                        <li><a href='#'>Sin especificar</a></li>
+                    </ul>
+                </div>
+                 <div id='drop_age' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Edad</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Compare Todos</a></li>
+                        <li><a href='#'>bajo 18</a></li>
+                        <li><a href='#'>18-30</a></li>
+                        <li><a href='#'>31-40</a></li>
+                        <li><a href='#'>41-50</a></li>
+                        <li><a href='#'>m&aacute;s de 50</a></li>
+                        <li><a href='#'>Sin especificar</a></li>
+                    </ul>
+                </div>
+                <div id='drop_race' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Raza</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Compare Todes</a></li>
+                        <li><a href='#'>Negro o afroamericano</a></li>
+                        <li><a href='#'>Asi&aacute;tico</a></li>
+                        <li><a href='#'>Hispano, latino, o espa&ntilde;ol</a></li>
+                        <li><a href='#'>Blanco</a></li>
+                        <li><a href='#'>Multirracial</a></li>
+                        <li><a href='#'>Indio Americano o Nativo de Alaska</a></li>
+                        <li><a href='#'>Otro</a></li>
+                        <li><a href='#'>Sin especificar</a></li>
+                    </ul>
+                </div>
+                <div id='drop_income' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Ingresos</span>
+                    <ul class='dropdown'>
+                        <li><a href='#'>Compare Todos</a></li>
+                        <li><a href='#'>$0 - $25k</a></li>
+                        <li><a href='#'>$25k - $50k</a></li>
+                        <li><a href='#'>$50k - $75k</a></li>
+                        <li><a href='#'>$75k - $100k</a></li>
+                        <li><a href='#'>m&aacute;s de $100k</a></li>
+                        <li><a href='#'>Sin especificar</a></li>
+                    </ul>
+                </div>
+                <p class='wrapper-search'><input type='text' name='search' class='searchField' placeholder='palabra...'><span class='submitSearch'>+</span></p>
+            </div>
+        </nav>
+        <div class = 'wrapper'>
+            <div class = 'currentInfo'>
+            </div>
+           
+            <div class = 'compareLabels'>
+            </div>
+            <div class = 'challengeQuestion'><p></p></div>
+            <p class = 'userMessage'>mont&oacute;n de carga de datos<br><br><img src='../img/eye1.gif'>&nbsp;&nbsp;<img src='../img/eye2.gif'><br><img src='../img/mouth.gif'><br><br>por favor sea paciente...</p>
+                
+            <div class = 'displayInfo'>
+                <div class = 'box'>    
+                    <p class='mainResponse'></p>
+                    <p class='viewComments'>view comments</p>
+                    <div class='allComments'>
+                    </div>
+                    <a href='#'><img src='../img/remove.png' alt=''></a>
+                </div>
+            </div>
+        </div>
+        <div class = 'filterList'>
+        </div>
+        
+        <div class = 'bubbleMode tool currentMode'></div>
+        <div class = 'cloudMode tool'></div>
+        <!-- <div class = 'demographicMode tool'></div> -->
+        
+       <!--  <div class = 'formShape tool'></div>
+        <div class = 'stats tool'></div> -->
+        <p class='helpButton'>?</p>
+        <div class='helpArea'>
+            <div class = 'content'>
+                <h2>Lo Esencial:</h2>
+                <p>
+                    Esta es una visualización de datos de todas las respuestas y comentarios para todos los desafíos en el juego de Planit Comunidad. Para empezar, sólo tiene que seleccionar un reto desde el menú desplegable.
+                </p> 
+                <p>
+                    Cambiar los modos de seleccionar un botón de la derecha. Existen tres modos:
+                    <br>
+                    <ul>
+                        <li>Modo burbuja: Representa cada repsonse en un desafío como una burbuja</li>
+                        <li>El modo palabra nube: Muestra las palabras más utilizadas en función del tamaño</li>
+                        <li>Demografía modo: muestra una infografía de fondos de los jugadores</li>
+                    </ul>
+                </p>
+
+                <h2>¿Qué cosas quiere decir:</h2>
+                <p>
+                Cada burbuja representa una única respuesta a ese desafío. Cuanto más grande es la burbuja, el más popular de la respuesta.  
+                </p>
+                <p>
+                    El color es un indicador cuantitativo de la sensibilidad de la respuesta:
+                    <img class='spectrum' src='../img/spectrum2.png'> 
+                </p>
+                <h2>Filtros: </h2>
+                <p>
+                    Puede refinar las respuestas al elegir uno (o más) filtros demográficos en los menús desplegables. También puede optar por crear un filtro de palabras clave personalizadas que analizará las respuestas para mostrar cualquier respuesta usando esa palabra clave.
+                </p>
+                <h2>Interacción: </h2>
+                <p>
+                    Puede ver una respone haciendo clic en una burbuja. Si la respuesta tiene comentarios habrá un botón para mostrarlos. Haga clic en el filtro de palabras (en la parte inferior izquierda o en entre las burbujas) para eliminarlo. También se puede jugar con las burbujas arrastrándolos alrededor!
+                </p>
+                <p class='centerText'>{haga clic en cualquier lugar para cerrar}</p>
+            </div>
+        </div>
+        <div class='demoHelp'></div>
+        <div class='demoText'></div>
+       <!--  <div id="google_translate_element"></div><script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'de,es,fr,ja,zh-CN', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+}
+</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script> -->
+    </body>
+</html>
