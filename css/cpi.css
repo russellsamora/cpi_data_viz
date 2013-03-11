@@ -648,21 +648,32 @@ h2.currentViz {
     border-bottom: 2px solid rgba(0,0,0,0.3);
 }
 .demoText {
-    width: 320px;
-    color: #333;
+    width: 30%;
+    left: 33%;
+    top: 28%;
     position: absolute;
     z-index: 888;
-    top: 60px;
-    right: 20px;
 }
 .demoText p {
-    font-size: 1.5em;
-    text-align: right;
     font-family: 'vinyl', sans-serif;
+    font-size: 1.5em;
+    color: #555;
+    line-height: 2.5em;
+    cursor: default;
 }
-.demoText p span {
-    font-size: 2.2em;
+.num_users {
+    font-size: 3em;
+    color: #1884A8;
+} 
+.num_responses {
+    font-size: 1.8em;
+    color: #81A965;
 }
+.num_coins {
+    font-size: 1.5em;
+    color: #EA446A;
+}
+
 .questions {
     position: absolute;
     top: 39px;
@@ -677,4 +688,76 @@ h2.currentViz {
 }
 .clickMe {
     cursor: pointer;
+}
+.demoLabel {
+    font-family: 'default-gothic', sans-serif;
+    font-size: 1em;
+    color: #888;
+    position: absolute;
+}
+
+.fromWhere {
+    top: 20px;
+    left: 33%;
+}
+.demoBreakdown {
+    top: 20px;
+    left: 20px;
+}
+.communicationType {
+    top: 20px;
+    left: 66%;
+}
+.percentCompleted {
+    top: 55%;
+    left: 33%;
+}
+.priorParticipation {
+    top: 46%;
+    left: 80%;
+}
+.workedPlanning {
+    top: 68%;
+    left: 69%;
+}
+.demoFilterList {
+    position: absolute;
+    width: 25%;
+    font-family: 'default-gothic', sans-serif;
+    font-size: 1.3em;
+    bottom: 40px;
+    left: 70%;
+}
+.demoFilterTitle {
+    font-family: 'vinyl', sans-serif;
+    font-size: 1.5em;
+    color: #555;
+}
+.demoHover {
+    position: absolute;
+    display: none;
+    z-index: 1000;
+    padding: 10px;
+    color: #efefef;
+    background: #555;
+    border-radius: 5px;
+}
+.resetDemo {
+    position: absolute;
+    display: none;
+    top: 60px;
+    right: 20px;
+    font-size: 2em;
+    font-family: 'default-gothic', sans-serif;
+    z-index: 1000;
+    padding: 10px;
+    color: #fff;
+    background: #EA446A;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.demoHover span {
+    padding: 0;
+    display: inline-block;
+    font-family: 'default-gothic', sans-serif;
 }

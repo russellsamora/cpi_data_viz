@@ -61,10 +61,12 @@ var currentInfo = null,
     ignore = null,
     twoRowsCompare = false,
     stats = null,
-    cityPath = null;
+    cityPath = null,
+    minWidth = 1024,
+    minHeight = 600;
 
 //demographic specific variables
-var demoColors = ['rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)', 'rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)'];
+var demoColors = ['rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)', 'rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)'],
     demoFilterData = null,
     demoFilterDonut = null,
     demoFilterArray = null,
@@ -97,7 +99,13 @@ var demoColors = ['rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)
     thirds = 0,
     demoWrapper = null,
     demoZipsArray = null,
-    filterLocations = {'gender': [0,0], 'age': [1,0], 'race': [0,1], 'stake': [1,1], 'income': [0,2], 'education': [1,2]};
+    filterLocations = {'gender': [0,0], 'age': [1,0], 'race': [0,1], 'stake': [1,1], 'income': [0,2], 'education': [1,2]},
+    leftG = null,
+    middleG = null,
+    rightG = null,
+    barWidth = 0,
+    mouseCategoryOff = 0,
+    demoColorsGray = ['#333','#777','#555','#999','#777','#aaa','#999','#ccc','#aaa','#eee','#ccc'];
 
 //init and set most click events and stuff
 $(function() {
@@ -147,6 +155,10 @@ function init() {
 
 //refine the user data (try to do most of this in excel?)
 function refineUsers(firstUsers) {
+    //pull in the zip codes from the body attr and parse it
+    var dataZips = $('body').attr('data-zips'),
+        cityZips = dataZips.split(',');
+
     //go thru each user and refine stuff (ie. change age year to age group)
     var usersL = firstUsers.length,
         i = 0;
@@ -209,19 +221,34 @@ function refineUsers(firstUsers) {
                 if(prop === 'challenges_completed') {
                     var percent = parseInt(tempUser[prop],10);
                     if(percent < 10) {
-                        tempUser.challenges_completed = '0% - 20%';
+                        tempUser.challenges_completed = '1% - 10%';
+                    }
+                    else if(percent < 20) {
+                        tempUser.challenges_completed = '10% - 20%';
+                    }
+                    else if(percent < 30) {
+                        tempUser.challenges_completed = '20% - 30%';
                     }
                     else if(percent < 40) {
-                        tempUser.challenges_completed = '20% - 40%';
+                        tempUser.challenges_completed = '30% - 40%';
+                    }
+                    else if(percent < 50) {
+                        tempUser.challenges_completed = '40% - 50%';
                     }
                     else if(percent < 60) {
-                        tempUser.challenges_completed = '40% - 60%';
+                        tempUser.challenges_completed = '50% - 60%';
+                    }
+                    else if(percent < 70) {
+                        tempUser.challenges_completed = '60% - 70%';
                     }
                     else if(percent < 80) {
-                        tempUser.challenges_completed = '60% - 80%';
+                        tempUser.challenges_completed = '70% - 80%';
+                    }
+                    else if(percent < 90) {
+                        tempUser.challenges_completed = '80% - 90%';
                     }
                     else {
-                        tempUser.challenges_completed = '80% - 100%';
+                        tempUser.challenges_completed = '90% - 100%';
                     }
                     tempUser.total_responses = Math.floor(percent * 0.01 * challenges.length);
                 }
@@ -257,7 +284,13 @@ function refineUsers(firstUsers) {
                     }
                     else {
                         //this will be replaced (but in index file in data body)
-                        if(tempZip === '19143') {
+                        var found = false;
+                        for(var c = 0; c < cityZips.length; c++) {
+                            if(tempZip === cityZips[c]) {
+                                found = true;
+                            }
+                        }
+                        if(found) {
                             tempUser.zip_code = 'inside';
                          }
                          else {
@@ -421,6 +454,7 @@ function changeChallenge(cur) {
             vizMode = 0;
         });
         $('.bubbleMode').addClass('currentMode');
+        $('.resetDemo').fadeOut();
         $('.demographics').fadeOut();
     }
 
@@ -510,12 +544,40 @@ function setScales() {
     bigWord = Math.floor(width / 20);
 }
 function setDemoScales() {
-    //demo scales
-    var tempH = Math.floor((height - 140) / 7);
-    innerRadius = tempH-tempH/2;
-    outerRadius = tempH;
+    var spacing = 20,
+        confines = false,
+        factor = 3,
+        realH = (height - (spacing * 6 + 80)),
+        tempRad = 0;
 
+    if(height < minHeight) {
+        realH = minHeight - (spacing * 6 + 80);
+    }
+    //must check to see if circles are within bounds, if not, shrink em down
+    //we start with factor 3 because we will have 3 rows
+    while(!confines) {
+        tempRad = Math.floor((realH  / factor) * 0.5);
+        var totalW = tempRad * 4 + (spacing * 3);
+        if(totalW < thirds) {
+            //we are okay
+            confines = true;
+        }
+        else {
+            factor += 0.2;
+        }
+        //console.log(tempRad, thirds);
+    }
+    innerRadius = tempRad-tempRad/2;
+    outerRadius = tempRad;
+
+    //60 is spacing
+    barWidth = (thirds - 60) / 10;
+
+    var baseFont = Math.floor(thirds * 0.035);
+    $('.demoText').css('font-size', baseFont);
+    $('.demoFilterList').css('font-size', (baseFont * 1.2));
     resetDemoSizes();
+
 }
 
 //figure out the max and min for the popularity, sentiment of responses
@@ -1321,7 +1383,10 @@ function resize(first) {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(resizeEnd, 1000);
     }
-    thirds = (height / 3) - 40;
+    thirds = width / 3 - 52;
+    if(width < minWidth) {
+        thirds = minWidth / 3 - 52;
+    }
 }
 
 //resize delay function so we don't call this EVERY resize trigger
@@ -1335,7 +1400,7 @@ function resizeEnd() {
     
     //setDemo
     setDemoScales();
-
+    updateDemographicData();
     //change size and positions of circles
     viz.selectAll('circle')
         .attr('r', function(d,i) {
@@ -1489,6 +1554,8 @@ function setupEvents(){
     $('.bubbleMode').bind('click', function() {
         if(challengeShowing && vizMode !== 0) {
             hideResponse();
+            $('.resetDemo').fadeOut();
+            $('.filterList').fadeIn();
             $('.userDemographics').fadeOut(100,function() {
                 $('.questions').fadeIn();
                 $('.cloud').fadeOut();
@@ -1502,6 +1569,7 @@ function setupEvents(){
     $('.cloudMode').bind('click', function() {
         if(challengeShowing && vizMode !== 1) {
             hideResponse();
+            $('.resetDemo').fadeOut();
             $('.userDemographics').fadeOut(100,function() {
                 $('.questions').fadeIn();
                 $('.bubbles').fadeOut();
@@ -1516,13 +1584,21 @@ function setupEvents(){
         if(challengeShowing && vizMode !== 2) {
             // $('.cloud').fadeOut();
             // $('.bubbles').fadeOut(function() {
+            $('.filterList').fadeOut();
             $('.questions').fadeOut(function() {
                 $('.userDemographics').fadeIn();
+                $('.demoFiltList').empty();
+                $('.resetDemo').fadeIn();
             });
             vizMode = 2;
             $('.tool').removeClass('currentMode');
             $(this).addClass('currentMode');
         }
+    });
+    $('.resetDemo').bind('click', function() {
+        $('.demoFilterList').empty();
+        demographicFilters = [];
+        updateDemographicData();
     });
 
     $('.mainResponse, .allComments, .imageInResponse').bind('click', function() {
@@ -1557,31 +1633,35 @@ function setupDemographics(){
         prior_participation: null
     };
 
-    demoFilterDonut.gender = demographicViz.append('g')
+    leftG = demographicViz.append('g').classed('leftG', true);
+    middleG = demographicViz.append('g').classed('middleG', true);
+    rightG = demographicViz.append('g').classed('rightG', true);
+
+    demoFilterDonut.gender = leftG.append('g')
         .classed('gender', true);
-    demoFilterDonut.age = demographicViz.append('g')
+    demoFilterDonut.age = leftG.append('g')
         .classed('age', true);
-    demoFilterDonut.race = demographicViz.append('g')
+    demoFilterDonut.race = leftG.append('g')
         .classed('race', true);
-    demoFilterDonut.income = demographicViz.append('g')
+    demoFilterDonut.income = leftG.append('g')
         .classed('income', true);
-    demoFilterDonut.education = demographicViz.append('g')
+    demoFilterDonut.education = leftG.append('g')
         .classed('education', true);
-    demoFilterDonut.stake = demographicViz.append('g')
+    demoFilterDonut.stake = leftG.append('g')
         .classed('stake', true);
 
-    demoPies.worked_in_planning = demographicViz.append('g')
+    demoPies.worked_in_planning = rightG.append('g')
         .classed('worked', true);
-    demoPies.prior_participation = demographicViz.append('g')
+    demoPies.prior_participation = rightG.append('g')
         .classed('prior', true);
 
-    demoGovernment = demographicViz.append('g')
+    demoGovernment = rightG.append('g')
         .classed('government', true);
 
-    demoChallengesBars = demographicViz.append('g')
+    demoChallengesBars = middleG.append('g')
         .classed('challenges', true);
 
-    demoText = $('.userDemographics').append('<div class = "demoText"><p class="num_users"></p><p class="total_coins"></p><p class="average_coins"></p><p class="total_responses"></p><p class="average_responses"></p>')
+    demoText = $('.userDemographics').append('<div class="demoText"><p>There were <span class="num_users"></span> active players that left <br> <span class="num_responses"></span> responses and earned <span class="num_coins"></span> coins!</p></div>');
 
     //universal pie
     donut = d3.layout.pie()
@@ -1590,7 +1670,7 @@ function setupDemographics(){
         return d.quantity;
     });
 
-    demoZipsGroup = demographicViz.append('g')
+    demoZipsGroup = middleG.append('g')
         .classed('zips', true);
 
     setDemoScales();
@@ -1599,17 +1679,37 @@ function setupDemographics(){
 
 function resetDemoSizes() {
     demoWrapper.attr('width', width-1).attr('height', height-38);
+
+    leftG.attr('width', thirds)
+        .attr('height', height - 40)
+        .attr('transform', 'translate(' + (outerRadius + 20) + ',' + (outerRadius + 60 ) + ')');
+    middleG.attr('width', thirds)
+        .attr('height', height - 40)
+        .attr('transform', 'translate(' + (thirds) + ',0)');
+    rightG.attr('width', thirds)
+        .attr('height', height - 40)
+        .attr('transform', 'translate(' + (thirds * 2) + ',40)');
     //universal arc size
     for(var category in demoFilterDonut) {
         //use data sheet above
-        var locX = filterLocations[category][0] * (outerRadius * 2.2) + outerRadius + 20,
-            locY = filterLocations[category][1] * (outerRadius * 2.5) + outerRadius + 20;
+        var locX = filterLocations[category][0] * (outerRadius * 2 + 20),
+            locY = filterLocations[category][1] * (outerRadius * 2 + 40);
         demoFilterDonut[category].attr("transform", "translate(" + locX + "," + locY + ")");
     }
 
-    demoGovernment.attr("transform", "translate(" + (outerRadius * 7 + 20) + "," + (20 + outerRadius * 3.5) + ")");
-    demoPies.worked_in_planning.attr("transform", "translate(" + (outerRadius * 6 + 20) + "," + (outerRadius * 6 + 20) + ")");
-    demoPies.prior_participation.attr("transform", "translate(" + (outerRadius * 8 + 20) + "," + (outerRadius * 6 + 20) + ")");
+    demoGovernment.attr('transform', 'translate(' + (outerRadius * 3.33 + 20) +',' + (outerRadius * 1.33 + 20) + ')');
+    demoPies.worked_in_planning.attr('transform', 'translate(' + (outerRadius * 2.33 + 20) + ',' + (outerRadius * 4 + 20) + ')');
+    $('.workedPlanning').css({
+        left: (thirds * 2 + outerRadius + 20),
+        top: (outerRadius * 5 + 50)
+    });
+    
+    demoPies.prior_participation.attr('transform', 'translate(' + (outerRadius * 4.33 + 20) + ',' + (outerRadius * 4 + 20) + ')');
+    $('.priorParticipation').css({
+        left: (thirds * 2 + (outerRadius * 5 + 10)),
+        top: (outerRadius * 3.66)
+    });
+
     arc = d3.svg.arc()
     .innerRadius(innerRadius)
     .outerRadius(outerRadius);
@@ -1622,9 +1722,10 @@ function resetDemoSizes() {
     .innerRadius(0)
     .outerRadius(outerRadius * 1.33);
 
-    demoZipsGroup.attr("transform", "translate(" + (outerRadius * 5 + 20) + "," + (20 + outerRadius/2) + ")");
+    demoZipsGroup.attr("transform", "translate(" + (40) + "," + (60) + ")");
 
-    demoChallengesBars.attr('transform', 'translate(' + (outerRadius * 10 + 20) + ',' + (20 + outerRadius * 2) + ')');
+    demoChallengesBars.attr('transform', 'translate(' + 60 + ',' + (height - (outerRadius * 3 + 50)) + ')');
+    $('.percentCompleted').css('top', (height - (outerRadius * 3 + 100)));
 }
 
 function resetDemoData() {
@@ -1684,11 +1785,16 @@ function resetDemoData() {
         }
     };
     demoChallenges = {
-        "0% - 20%": 0,
-        "20% - 40%": 0,
-        "40% - 60%": 0,
-        "60% - 80%": 0,
-        "80% - 100%": 0
+        "1% - 10%": 0,
+        "10% - 20%": 0,
+        "20% - 30%": 0,
+        "30% - 40%": 0,
+        "40% - 50%": 0,
+        "50% - 60%": 0,
+        "60% - 70%": 0,
+        "70% - 80%": 0,
+        "80% - 90%": 0,
+        "90% - 100%": 0
     };
     demoPiesData = {
         worked_in_planning: {
@@ -1742,23 +1848,48 @@ function resetDemoData() {
     };
 }
 
-function showCategory(d,e) {
-    console.log(d,e);
+function showCategory(d) {
+    var mouse = {top: (d3.event.pageY - 42), left: d3.event.pageX},
+        category = null,
+        quant = 0;
+    console.log(d);
+    if(d.data) {
+        category = d.data.category;
+        quant = d.data.quantity;
+    }
+    else {
+        category = d.category;
+        quant = d.quantity;
+    }
+    //put in count too?
+    $('.demoHover span').text(category + ': ' + quant);
+    var w = $('.demoHover').css('width'),
+        index = w.indexOf('px');
+    mouseCategoryOff = Math.floor(parseInt(w.substring(0,index), 10) / 2);
+    mouse.left -= mouseCategoryOff;
+    $('.demoHover').css(mouse).show();
+}
+function moveCategory() {
+    var mouse = {top: (d3.event.pageY - 42), left: d3.event.pageX};
+    mouse.left -= mouseCategoryOff;
+    $('.demoHover').css(mouse);
 }
 
 function hideCategory(d) {
-    console.log('remove');
+    $('.demoHover').hide();
 }
 
 function updateDemoFilters(d) {
     //if already in demo filters, then update it
-    console.log(d);
+    var col = $(this).attr('fill');
+    console.log(col);
     var found = false;
     for(var i = 0; i < demographicFilters.length; i++) {
         //our pies have nested data
         if(d.data) {
             if(demographicFilters[i].category === d.data.filter) {
             demographicFilters[i].value = d.data.category;
+            demographicFilters[i].color = col;
             found = true;
             continue;
             }
@@ -1766,6 +1897,7 @@ function updateDemoFilters(d) {
         else {
             if(demographicFilters[i].category === d.filter) {
                 demographicFilters[i].value = d.data.category;
+                demographicFilters[i].color = col;
                 found = true;
                 continue;
             }
@@ -1773,12 +1905,28 @@ function updateDemoFilters(d) {
     }
     if(!found) {
         if(d.data) {
-            demographicFilters.push({category: d.data.filter, value: d.data.category});
+            demographicFilters.push({category: d.data.filter, value: d.data.category, color: col});
         }
         else {
-            demographicFilters.push({category: d.filter, value: d.category});
+            demographicFilters.push({category: d.filter, value: d.category, color: col});
         }
     }
+
+    //clear filter list on screen and refill
+    $('.demoFilterList').empty();
+    for(var f = 0; f < demographicFilters.length; f++) {
+        console.log(demographicFilters[f]);
+        if(f===0) {
+            $('.demoFilterList').append('<span class="demoFilterTitle">Showing:</span><br>');
+            $('.demoFilterList').append('<span class = "demo' + f +'"> ' + demographicFilters[f].value + '</span>');
+        }
+        else {
+            $('.demoFilterList').append('<span class = "demo' + f +'"> &rsaquo;&rsaquo; ' + demographicFilters[f].value + '</span>');
+        }
+        var colSel = '.demo' + f;
+        $(colSel).css('color', demographicFilters[f].color);   
+    }
+
     updateDemographicData();
 }
 
@@ -1901,11 +2049,22 @@ function updateCharts() {
 function updateText() {
     averageCoins = Math.floor(totalCoins / demoUsers);
     averageResponses = Math.floor(totalResponses / demoUsers);
-    $('.num_users').html('<span>' + demoUsers + '</span>' + ' users');
-    $('.total_coins').html(totalCoins + ' coins earned');
-    $('.average_coins').html(averageCoins + ' coins per user');
-    $('.total_responses').html(totalResponses + ' responses left');
-    $('.average_responses').html(averageResponses + ' responses per user');
+    $('.demoText p span').animate({
+            opacity: 0
+        },200, function() {
+            $('.num_users').text(demoUsers);
+            $('.num_responses').text(totalResponses);
+            $('.num_coins').text(totalCoins);
+            $(this).animate({
+                opacity: 1
+            },500);
+        }
+    );
+    
+    // $('.total_coins').html(totalCoins + ' coins earned');
+    // $('.average_coins').html(averageCoins + ' coins per user');
+    // $('.total_responses').html(totalResponses + ' responses left');
+    // $('.average_responses').html(averageResponses + ' responses per user');
 }
 
 function setupDonuts(){
@@ -1925,6 +2084,7 @@ function setupDonuts(){
             .attr("d", arc)
             .on('mouseover', showCategory)
             .on('mouseout', hideCategory)
+            .on('mousemove', moveCategory)
             .on('click', updateDemoFilters)
             .classed('clickMe', true)
             .each(function(d) { this._current = d; });
@@ -1933,7 +2093,9 @@ function setupDonuts(){
             .text(function(d) {
                 return category;
             })
-            // .on('click', something)
+            .attr('font-size', function() {
+                return Math.floor(outerRadius * .2);
+            })
             .attr('dy', '.3em')
             .style('text-anchor', 'middle')
             .style('fill', function(d) {
@@ -1947,6 +2109,10 @@ function updateDonuts() {
         var path = demoFilterDonut[category].selectAll("path")
             .data(donut(demoFilterArray[category]))
             .transition().duration(1000).attrTween('d', arcTween);
+        var textis = demoFilterDonut[category].selectAll('text')
+            .attr('font-size', function() {
+                return Math.floor(outerRadius * .2);
+            });
     }
 }
 
@@ -1977,9 +2143,15 @@ function setupZips() {
             return outerRadius - innerRadius;
         })
         .style('fill', function(d, i) {
+            if(d.category === 'unspecified') {
+                return 'rgb(180,180,180)';
+            }
             return demoColors[i];
         })
         .classed('clickMe', true)
+        .on('mousemove', moveCategory)
+        .on('mouseover', showCategory)
+        .on('mouseout', hideCategory)
         .on('click', updateDemoFilters);
 }
 
@@ -1993,9 +2165,13 @@ function updateZips() {
         .attr('x', function(d,i) {
             return d.previous / zipTotal * (outerRadius * 4);
         })
+        .attr('y', 20)
         .attr('width', function(d,i) {
             return d.quantity / zipTotal * (outerRadius * 4);
         })
+        .attr('height', function() {
+            return outerRadius - innerRadius;
+        });
 }
 
 function setupBars() {
@@ -2010,28 +2186,41 @@ function setupBars() {
         .enter()
         .append('rect')
         .attr('x', function(d, i) {
-            return i * ((outerRadius - innerRadius) + 5);
+            return i * (barWidth + 5);
         })
         .attr('y', function(d) {
             return (outerRadius * 3) - challengeScale(d.quantity);
         })
         .attr('width', function() {
-            return (outerRadius - innerRadius);
+            return barWidth;
         })
         .attr('height', function(d) {
             return challengeScale(d.quantity);
         })
         .style('fill', demoColors[3])
+        .on('mousemove', moveCategory)
+        .on('mouseover', showCategory)
+        .on('mouseout', hideCategory)
         .classed('clickMe', true)
         .on('click', updateDemoFilters);
 }
 
 function updateBars() {
+    var maxC = d3.max(demoChallengesArray, function(d,i) {
+        return d.quantity;
+    });
+    challengeScale = d3.scale.linear().domain([0,maxC]).range([0,(outerRadius * 3)]);
     demoChallengesBars.selectAll('rect')
         .data(demoChallengesArray)
         .transition().duration(1000)
+        .attr('x', function(d, i) {
+            return i * (barWidth + 5);
+        })
         .attr('y', function(d) {
-            return 200 - challengeScale(d.quantity);
+            return (outerRadius * 3) - challengeScale(d.quantity);
+        })
+        .attr('width', function() {
+            return barWidth;
         })
         .attr('height', function(d) {
             return challengeScale(d.quantity);
@@ -2053,6 +2242,7 @@ function setupPies() {
             })
             // .each(function(d) { this._current = d.quantity; }) // store the initial values
             .attr("d", pieArc)
+            .on('mousemove', moveCategory)
             .on('mouseover', showCategory)
             .on('mouseout', hideCategory)
             .on('click', updateDemoFilters)
@@ -2074,9 +2264,11 @@ function setupPies() {
             })
             // .each(function(d) { this._current = d.quantity; }) // store the initial values
             .attr("d", govArc)
+            .on('mousemove', moveCategory)
             .on('mouseover', showCategory)
             .on('mouseout', hideCategory)
             .on('click', updateDemoFilters)
+            .classed('clickMe', true)
             .each(function(d) { this._current = d; });
 }
 
