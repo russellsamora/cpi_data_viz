@@ -279,7 +279,6 @@ input[type=text] {
     bottom: 220px;
     right: 10px;
     cursor: pointer;
-    opacity: 0.3;
     background: #555 url(../img/bubbleMode.png);
 }
 .cloudMode {
@@ -292,7 +291,6 @@ input[type=text] {
     bottom: 160px;
     right: 10px;
     cursor: pointer;
-    opacity: 0.3;
     background: #555 url(../img/cloudMode.png);
 }
 .demographicMode {
@@ -305,7 +303,6 @@ input[type=text] {
     bottom: 100px;
     right: 10px;
     cursor: pointer;
-    opacity: 0.3;
     background: #555 url(../img/demographicMode.png);
 }
 .tool:hover {

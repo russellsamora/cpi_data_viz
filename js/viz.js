@@ -1,3 +1,16 @@
+/****
+
+Hecho por Russell Goldenberg @ Engagement Game Lab circa March 2013
+
+    ____                _            _                    
+   / __ \   ___ ___   __| | ___ _ __ | |__   ___ _ __ __ _ 
+  / / _` | / __/ _ \ / _` |/ _ \ '_ \| '_ \ / _ \ '__/ _` |
+ | | (_| |  (_| (_) | (_| |  __/ | | | |_) |  __/ | | (_| |
+  \ \__,_| \___\___/ \__,_|\___|_| |_|_.__/ \___|_|  \__, |
+   \____/                                           |___/ 
+
+*****/
+
 var currentInfo = null,
     challengeInfo = null,
     vizContainer = null,
@@ -51,7 +64,7 @@ var currentInfo = null,
     bigWord = 40,
     bubbleViz = null,
     demographicViz = null,
-    vizMode = 0,
+    vizMode = -1,
     maxSent = 0,
     minSent = 0,
     aidan = ['#1884A8', '#1885AA', '#777', '#aaa'],
@@ -419,7 +432,6 @@ function changeChallenge(cur) {
     //do a bunch of resets
     challengeShowing = true;
     userMessage.hide();
-    $('.tool').css('opacity', 1);
     hideResponse();
     $('.selectChallenge').text('Challenge: ' + challenges[cur].challenge_title);
     var qLength = challenges[cur].challenge_question.length,
@@ -447,15 +459,16 @@ function changeChallenge(cur) {
     twoRowsCompare = false;
     $('.filterList').empty();
 
+    console.log(vizMode);
     if(vizMode !== 0) {
         $('.tool').removeClass('currentMode');
-        $('.cloud').fadeOut(function() {
+        $('.cloud, .userDemographics').fadeOut(function() {
             $('.bubbles').fadeIn();
             vizMode = 0;
         });
         $('.bubbleMode').addClass('currentMode');
         $('.resetDemo').fadeOut();
-        $('.demographics').fadeOut();
+        $('.userDemographics').fadeOut();
     }
 
     var challengeId = challenges[cur].challenge_id;
@@ -1552,7 +1565,7 @@ function setupEvents(){
 
     //tool button click
     $('.bubbleMode').bind('click', function() {
-        if(challengeShowing && vizMode !== 0) {
+        if(vizMode !== 0) {
             hideResponse();
             $('.resetDemo').fadeOut();
             $('.filterList').fadeIn();
@@ -1567,13 +1580,16 @@ function setupEvents(){
         }
     });
     $('.cloudMode').bind('click', function() {
-        if(challengeShowing && vizMode !== 1) {
+        if(vizMode !== 1) {
             hideResponse();
             $('.resetDemo').fadeOut();
             $('.userDemographics').fadeOut(100,function() {
                 $('.questions').fadeIn();
                 $('.bubbles').fadeOut();
-                compileWords();
+                if(challengeShowing) {
+                    console.log('shiit');
+                    compileWords();
+                }
             });
             vizMode = 1;
             $('.tool').removeClass('currentMode');
@@ -1581,7 +1597,7 @@ function setupEvents(){
         }
     });
     $('.demographicMode').bind('click', function() {
-        if(challengeShowing && vizMode !== 2) {
+        if(vizMode !== 2 && ready) {
             // $('.cloud').fadeOut();
             // $('.bubbles').fadeOut(function() {
             $('.filterList').fadeOut();
