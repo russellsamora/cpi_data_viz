@@ -2,13 +2,12 @@
 
 Hecho por Russell Goldenberg @ Engagement Game Lab circa March 2013
 
-    ____                _            _                    
-   / __ \   ___ ___   __| | ___ _ __ | |__   ___ _ __ __ _ 
-  / / _` | / __/ _ \ / _` |/ _ \ '_ \| '_ \ / _ \ '__/ _` |
- | | (_| |  (_| (_) | (_| |  __/ | | | |_) |  __/ | | (_| |
-  \ \__,_| \___\___/ \__,_|\___|_| |_|_.__/ \___|_|  \__, |
-   \____/                                           |___/ 
-
+   ____                _            _                    
+  / __ \  ___ ___   __| | ___ _ __ | |__   ___ _ __ __ _ 
+ / / _` |/ __/ _ \ / _` |/ _ \ '_ \| '_ \ / _ \ '__/ _` |
+| | (_| | (_| (_) | (_| |  __/ | | | |_) |  __/ | | (_| |
+ \ \__,_|\___\___/ \__,_|\___|_| |_|_.__/ \___|_|  \__, |
+  \____/                                           |___/ 
 *****/
 
 var currentInfo = null,
@@ -76,7 +75,8 @@ var currentInfo = null,
     stats = null,
     cityPath = null,
     minWidth = 1024,
-    minHeight = 600;
+    minHeight = 600,
+    prevVizMode = -1;
 
 //demographic specific variables
 var demoColors = ['rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)', 'rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)', 'rgb(181, 212, 160)', 'rgb(234, 68, 106)'],
@@ -459,12 +459,12 @@ function changeChallenge(cur) {
     twoRowsCompare = false;
     $('.filterList').empty();
 
-    console.log(vizMode);
     if(vizMode !== 0) {
         $('.tool').removeClass('currentMode');
         $('.cloud, .userDemographics').fadeOut(function() {
             $('.bubbles').fadeIn();
             vizMode = 0;
+            prevVizMode = 0;
         });
         $('.bubbleMode').addClass('currentMode');
         $('.resetDemo').fadeOut();
@@ -1272,6 +1272,7 @@ function backToBubbles(d) {
             $('.bubbles').fadeIn();
         });
         vizMode = 0;
+        prevVizMode = 0;
         $('.tool').removeClass('currentMode');
         $('.bubbleMode').addClass('currentMode');
     }
@@ -1575,8 +1576,11 @@ function setupEvents(){
                 $('.bubbles').fadeIn();
             });
             vizMode = 0;
+            prevVizMode = 0;
             $('.tool').removeClass('currentMode');
             $(this).addClass('currentMode');
+            $('.topDemographics').removeClass('currentViz');
+            $('.topChallenges').addClass('currentViz');
         }
     });
     $('.cloudMode').bind('click', function() {
@@ -1587,13 +1591,15 @@ function setupEvents(){
                 $('.questions').fadeIn();
                 $('.bubbles').fadeOut();
                 if(challengeShowing) {
-                    console.log('shiit');
                     compileWords();
                 }
             });
             vizMode = 1;
+            prevVizMode = 1;
             $('.tool').removeClass('currentMode');
             $(this).addClass('currentMode');
+            $('.topDemographics').removeClass('currentViz');
+            $('.topChallenges').addClass('currentViz');
         }
     });
     $('.demographicMode').bind('click', function() {
@@ -1609,6 +1615,8 @@ function setupEvents(){
             vizMode = 2;
             $('.tool').removeClass('currentMode');
             $(this).addClass('currentMode');
+            $('.topChallenges').removeClass('currentViz');
+            $('.topDemographics').addClass('currentViz');
         }
     });
     $('.resetDemo').bind('click', function() {
@@ -1619,6 +1627,36 @@ function setupEvents(){
 
     $('.mainResponse, .allComments, .imageInResponse').bind('click', function() {
         hideResponse();
+    });
+
+    $('.topChallenges').bind('click', function() {
+        $('.resetDemo').fadeOut();
+        $('.userDemographics').fadeOut(function() {
+            $('.questions').fadeIn();
+        });
+        $(this).addClass('currentViz');
+        $('.topDemographics').removeClass('currentViz');
+        $('.tool').removeClass('currentMode');
+        if(prevVizMode === 1) {
+            vizMode = 1;
+            $('.cloudMode').addClass('currentMode');
+        }
+        else {
+            vizMode = 0;
+            $('.bubbleMode').addClass('currentMode');
+        }
+    });
+    $('.topDemographics').bind('click', function() {
+        $('.questions').fadeOut(function() {
+            $('.userDemographics').fadeIn();
+            $('.demoFiltList').empty();
+            $('.resetDemo').fadeIn();
+        });
+        $(this).addClass('currentViz');
+        $('.topChallenges').removeClass('currentViz');
+        vizMode = 2;
+        $('.tool').removeClass('currentMode');
+        $('.demographicMode').addClass('currentMode');
     });
 }
 

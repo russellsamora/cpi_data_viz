@@ -444,9 +444,23 @@ input[type=text] {
 }
 .navigation h2 {
     padding: 5px 10px;
+    margin-right: 10px;
     cursor: default;
     color: rgb(255, 220, 220);
     float: left;
+}
+.navigation h3 {
+    padding: 9px 10px;
+    cursor: pointer;
+    color: #F49FB3;
+    float: left;
+}
+.navigation .currentViz {
+    color: #fff;
+    text-shadow: 1px 1px 1px rgba(50,50,50,.5);
+}
+.navigation h3:hover {
+    color: #fff;
 }
 .el_grupo {
     display: none;
