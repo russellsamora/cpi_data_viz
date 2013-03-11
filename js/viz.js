@@ -1852,7 +1852,7 @@ function showCategory(d) {
     var mouse = {top: (d3.event.pageY - 42), left: d3.event.pageX},
         category = null,
         quant = 0;
-    console.log(d);
+    
     if(d.data) {
         category = d.data.category;
         quant = d.data.quantity;
@@ -1862,6 +1862,12 @@ function showCategory(d) {
         quant = d.quantity;
     }
     //put in count too?
+    if(category === 'masters degree') {
+        category = "master's degree";
+    }
+    if( category === 'bachelors degree') {
+        category = "bachelor's degree";
+    }
     $('.demoHover span').text(category + ': ' + quant);
     var w = $('.demoHover').css('width'),
         index = w.indexOf('px');
@@ -1882,7 +1888,6 @@ function hideCategory(d) {
 function updateDemoFilters(d) {
     //if already in demo filters, then update it
     var col = $(this).attr('fill');
-    console.log(col);
     var found = false;
     for(var i = 0; i < demographicFilters.length; i++) {
         //our pies have nested data
@@ -1915,7 +1920,6 @@ function updateDemoFilters(d) {
     //clear filter list on screen and refill
     $('.demoFilterList').empty();
     for(var f = 0; f < demographicFilters.length; f++) {
-        console.log(demographicFilters[f]);
         if(f===0) {
             $('.demoFilterList').append('<span class="demoFilterTitle">Showing:</span><br>');
             $('.demoFilterList').append('<span class = "demo' + f +'"> ' + demographicFilters[f].value + '</span>');
@@ -2142,7 +2146,7 @@ function setupZips() {
         .attr('height', function() {
             return outerRadius - innerRadius;
         })
-        .style('fill', function(d, i) {
+        .attr('fill', function(d, i) {
             if(d.category === 'unspecified') {
                 return 'rgb(180,180,180)';
             }
@@ -2197,7 +2201,7 @@ function setupBars() {
         .attr('height', function(d) {
             return challengeScale(d.quantity);
         })
-        .style('fill', demoColors[3])
+        .attr('fill', demoColors[3])
         .on('mousemove', moveCategory)
         .on('mouseover', showCategory)
         .on('mouseout', hideCategory)
