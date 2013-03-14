@@ -118,7 +118,8 @@ var demoColors = ['rgb(129, 169, 101)','rgb(250, 153, 176)' , 'rgb(24, 132, 168)
     rightG = null,
     barWidth = 0,
     mouseCategoryOff = 0,
-    demoColorsGray = ['#333','#777','#555','#999','#777','#aaa','#999','#ccc','#aaa','#eee','#ccc'];
+    demoColorsGray = ['#333','#777','#555','#999','#777','#aaa','#999','#ccc','#aaa','#eee','#ccc'],
+    rawDemoUsers = [];
 
 //init and set most click events and stuff
 $(function() {
@@ -313,7 +314,40 @@ function refineUsers(firstUsers) {
                 }
             }
         }
+        //demographic users (those who answered stuff, even if its n/a)
+        //race is sort of arbitrary
+        if(tempUser.race !== 'unspecified') {
+            rawDemoUsers.push(tempUser);
+        }
+
         i++;
+    }
+
+    //any partially filled out demographics, lump unspecified with n/a
+    numUsers = rawDemoUsers.length;
+    for(var r = 0; r < rawDemoUsers.length; r++)  {
+        for(var proper in rawDemoUsers[r]) {
+            if(proper === 'stake' && rawDemoUsers[r][proper].length === 1) {
+                if(rawDemoUsers[r][proper][0] === 'unspecified') {
+                    rawDemoUsers[r][proper][0] = 'n/a';
+                }
+            }
+            else {
+                if(rawDemoUsers[r][proper] === 'unspecified') {
+                rawDemoUsers[r][proper] = 'n/a';
+                }
+            }
+        }
+    }
+
+    //NOW, we can go thru first users, and change ALL the unspecifieds 
+    //lump with n/a, (not same as above because we basically removed the unspecifieds from that array)
+    for(var n = 0; n < firstUsers.length; n++) {
+        for(var property in firstUsers[n]) {
+            if(firstUsers[n][property] === 'unspecified') {
+                firstUsers[n][property] = 'n/a';
+            }
+        }
     }
     return firstUsers;
 }
@@ -349,14 +383,13 @@ function loadUsers() {
     d3.csv(usersPath, function(csv_users) {
         //refine user data (ie. changing birth year to age range etc.)
         rawUsers = csv_users;
-        numUsers = csv_users.length;
+        //numUsers = csv_users.length;
         var refinedUsers = refineUsers(csv_users);
         users = d3.nest()
         .key(function(d) {
             return d.user_id;
         })
         .map(refinedUsers);
-
 
         //load challenge info
         setupDemographics();
@@ -588,7 +621,7 @@ function setDemoScales() {
 
     var baseFont = Math.floor(thirds * 0.035);
     $('.demoText').css('font-size', baseFont);
-    $('.demoFilterList').css('font-size', (baseFont * 1.2));
+    $('.demoFilterList').css('font-size', (baseFont * 1.4));
     resetDemoSizes();
 
 }
@@ -1731,6 +1764,7 @@ function setupDemographics(){
     updateDemographicData(true);
 }
 
+
 function resetDemoSizes() {
     demoWrapper.attr('width', width-1).attr('height', height-38);
 
@@ -1790,12 +1824,12 @@ function resetDemoData() {
             "31-40": 0,
             "41-50": 0,
             "over 50": 0,
-            "unspecified": 0
+            "n/a": 0
         },
         gender: {
             "male": 0,
             "female": 0,
-            "unspecified": 0
+            "n/a": 0
         },
         stake: {
             "business owner": 0,
@@ -1807,7 +1841,7 @@ function resetDemoData() {
             "student": 0,
             "volunteer": 0,
             "worker": 0,
-            "unspecified": 0
+            "n/a": 0
         },
         income: {
             "$0 - $25k": 0,
@@ -1815,7 +1849,7 @@ function resetDemoData() {
             "$50k - $75k": 0,
             "$75k - $100k": 0,
             "over $100k": 0,
-            "unspecified": 0
+            "n/a": 0
         },
         education: {
             "high school or less": 0,
@@ -1825,7 +1859,7 @@ function resetDemoData() {
             "professional degree": 0,
             "masters degree": 0,
             "doctoral degree": 0,
-            "unspecified": 0
+            "n/a": 0
         },
         race: {
             "black or african american": 0,
@@ -1835,7 +1869,7 @@ function resetDemoData() {
             "multiracial": 0,
             "american indian or alaskan native": 0,
             "other": 0,
-            "unspecified": 0
+            "n/a": 0
         }
     };
     demoChallenges = {
@@ -1854,30 +1888,30 @@ function resetDemoData() {
         worked_in_planning: {
             "yes": 0,
             "no": 0,
-            "unspecified": 0
+            "n/a": 0
         },
         prior_participation: {
             "yes": 0,
             "no": 0,
-            "unspecified": 0
+            "n/a": 0
         }
     };
     demoGovernmentData = {
         "none": 0,
         "other": 0,
-        "unspecified": 0,
         "email": 0,
         "letter": 0,
         "phone": 0,
         "community meetings": 0,
         "personal meetings": 0,
-        "social media": 0
+        "social media": 0,
+        "n/a": 0
     };
 
     demoZips = {
         "inside": 0,
         "outside": 0,
-        "unspecified": 0
+        "n/a": 0
     };
 
     demoUsers = 0;
@@ -1902,42 +1936,6 @@ function resetDemoData() {
     };
 }
 
-function showCategory(d) {
-    var mouse = {top: (d3.event.pageY - 42), left: d3.event.pageX},
-        category = null,
-        quant = 0;
-    
-    if(d.data) {
-        category = d.data.category;
-        quant = d.data.quantity;
-    }
-    else {
-        category = d.category;
-        quant = d.quantity;
-    }
-    //put in count too?
-    if(category === 'masters degree') {
-        category = "master's degree";
-    }
-    if( category === 'bachelors degree') {
-        category = "bachelor's degree";
-    }
-    $('.demoHover span').text(category + ': ' + quant);
-    var w = $('.demoHover').css('width'),
-        index = w.indexOf('px');
-    mouseCategoryOff = Math.floor(parseInt(w.substring(0,index), 10) / 2);
-    mouse.left -= mouseCategoryOff;
-    $('.demoHover').css(mouse).show();
-}
-function moveCategory() {
-    var mouse = {top: (d3.event.pageY - 42), left: d3.event.pageX};
-    mouse.left -= mouseCategoryOff;
-    $('.demoHover').css(mouse);
-}
-
-function hideCategory(d) {
-    $('.demoHover').hide();
-}
 
 function updateDemoFilters(d) {
     //if already in demo filters, then update it
@@ -2001,8 +1999,8 @@ function updateDemographicData(first) {
             if(demographicFilters[i].category === 'stake') {
                 demoFilterStakeHack = demographicFilters[i].value;
                 var foundStake = false;
-                for(var t = 0; t < rawUsers[u].stake.length; t++) {
-                    if(rawUsers[u]['stake'][t] === demographicFilters[i].value) {
+                for(var t = 0; t < rawDemoUsers[u].stake.length; t++) {
+                    if(rawDemoUsers[u]['stake'][t] === demographicFilters[i].value) {
                         foundStake = true;
                         continue;
                     }
@@ -2012,17 +2010,17 @@ function updateDemographicData(first) {
                 }
             }
             else {
-                if(rawUsers[u][demographicFilters[i].category] !== demographicFilters[i].value) {
+                if(rawDemoUsers[u][demographicFilters[i].category] !== demographicFilters[i].value) {
                     useMe = false;
                 }
             }
         }
         if(useMe) {
-            demoFilterData['age'][rawUsers[u].age] += 1;
-            demoFilterData['race'][rawUsers[u].race] += 1;
-            demoFilterData['gender'][rawUsers[u].gender] += 1;
-            demoFilterData['income'][rawUsers[u].income] += 1;
-            demoFilterData['education'][rawUsers[u].education] += 1;
+            demoFilterData['age'][rawDemoUsers[u].age] += 1;
+            demoFilterData['race'][rawDemoUsers[u].race] += 1;
+            demoFilterData['gender'][rawDemoUsers[u].gender] += 1;
+            demoFilterData['income'][rawDemoUsers[u].income] += 1;
+            demoFilterData['education'][rawDemoUsers[u].education] += 1;
 
             //special case where user can be multiple has special cases :)
             if(demoFilterStakeHack) {
@@ -2030,19 +2028,18 @@ function updateDemographicData(first) {
                 demoFilterData['stake'][demoFilterStakeHack] +=1;
             }
             else {
-                for(var s = 0; s < rawUsers[u].stake.length; s++) {
-                    demoFilterData['stake'][rawUsers[u].stake[s]] +=1;
+                for(var s = 0; s < rawDemoUsers[u].stake.length; s++) {
+                    demoFilterData['stake'][rawDemoUsers[u].stake[s]] +=1;
                 }
             }
-
-            demoChallenges[rawUsers[u].challenges_completed] += 1;
-            demoGovernmentData[rawUsers[u].communication_with_government] += 1;
-            demoPiesData['prior_participation'][rawUsers[u].prior_participation] += 1;
-            demoPiesData['worked_in_planning'][rawUsers[u].worked_in_planning] += 1;
-            demoZips[rawUsers[u].zip_code] += 1;
+            demoChallenges[rawDemoUsers[u].challenges_completed] += 1;
+            demoGovernmentData[rawDemoUsers[u].communication_with_government] += 1;
+            demoPiesData['prior_participation'][rawDemoUsers[u].prior_participation] += 1;
+            demoPiesData['worked_in_planning'][rawDemoUsers[u].worked_in_planning] += 1;
+            demoZips[rawDemoUsers[u].zip_code] += 1;
             demoUsers++;
-            totalResponses += rawUsers[u].total_responses;
-            totalCoins += rawUsers[u].coins;
+            totalResponses += rawDemoUsers[u].total_responses;
+            totalCoins += rawDemoUsers[u].coins;
         }
         u++;
     }
@@ -2088,6 +2085,59 @@ function updateDemographicData(first) {
     }
 }
 
+
+
+
+function showCategory(d) {
+    var mouse = {top: (d3.event.pageY - 42), left: d3.event.pageX},
+        category = null,
+        quant = 0;
+
+    if(d.data) {
+        category = d.data.category;
+        quant = d.data.quantity;
+    }
+    else {
+        category = d.category;
+        quant = d.quantity;
+    }
+
+    //put in count too?
+    if(category === 'masters degree') {
+        category = "master's degree";
+    }
+    if( category === 'bachelors degree') {
+        category = "bachelor's degree";
+    }
+    if( category === 'bachelors degree') {
+        category = "bachelor's degree";
+    }
+    if( category === 'associates degree') {
+        category = "assocatiate's degree";
+    }
+    $('.demoHover span').text(category + ': ' + quant);
+    var w = $('.demoHover').css('width'),
+        index = w.indexOf('px');
+    mouseCategoryOff = Math.floor(parseInt(w.substring(0,index), 10) / 2);
+    mouse.left -= mouseCategoryOff;
+    $('.demoHover').css(mouse).show();
+}
+
+function moveCategory() {
+    var mouse = {top: (d3.event.pageY - 42), left: d3.event.pageX};
+    mouse.left -= mouseCategoryOff;
+    $('.demoHover').css(mouse);
+}
+
+function hideCategory(d) {
+    $('.demoHover').hide();
+}
+
+
+
+
+/*** Visual elements of the demograhpic data **/
+
 function setupCharts() {
     setupDonuts();
     setupBars();
@@ -2131,12 +2181,7 @@ function setupDonuts(){
         .data(donut(demoFilterArray[category]))
         .enter().append("path")
             .attr("fill", function(d, i) {
-                if(d.data.category === 'unspecified') {
-                    return 'rgb(180,180,180)';
-                }
-                else {
-                    return demoColors[i];
-                }
+                return demoColors[i];
             })
             // .each(function(d) { this._current = d.quantity; }) // store the initial values
             .attr("d", arc)
@@ -2201,9 +2246,6 @@ function setupZips() {
             return outerRadius - innerRadius;
         })
         .attr('fill', function(d, i) {
-            if(d.category === 'unspecified') {
-                return 'rgb(180,180,180)';
-            }
             return demoColors[i];
         })
         .classed('clickMe', true)
@@ -2291,12 +2333,7 @@ function setupPies() {
         .data(donut(demoPiesArray[category]))
         .enter().append("path")
             .attr("fill", function(d, i) {
-                if(d.data.category === 'unspecified') {
-                    return 'rgb(180,180,180)';
-                }
-                else {
-                    return demoColors[i];
-                }
+                return demoColors[i];
             })
             // .each(function(d) { this._current = d.quantity; }) // store the initial values
             .attr("d", pieArc)
@@ -2313,12 +2350,7 @@ function setupPies() {
         .data(donut(demoGovernmentArray))
         .enter().append("path")
             .attr("fill", function(d, i) {
-                if(d.data.category === 'unspecified') {
-                    return 'rgb(180,180,180)';
-                }
-                else {
-                    return demoColors[i];
-                }
+                return demoColors[i];
             })
             // .each(function(d) { this._current = d.quantity; }) // store the initial values
             .attr("d", govArc)

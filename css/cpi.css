@@ -735,13 +735,13 @@ h2.currentViz {
     position: absolute;
     width: 25%;
     font-family: 'default-gothic', sans-serif;
-    font-size: 1.3em;
+    font-size: 1.5em;
     bottom: 40px;
     left: 70%;
 }
 .demoFilterTitle {
     font-family: 'vinyl', sans-serif;
-    font-size: 1.5em;
+    font-size: 1.6em;
     color: #555;
 }
 .demoHover {
