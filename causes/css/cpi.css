@@ -1,0 +1,29 @@
+*{
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+body{
+    background: #fff url(../img/bg-tile.png);
+    font-family: sans-serif;
+    color: #222;
+}
+
+a{
+    text-decoration: none;
+    color: #fff;
+}
+/*---- CROSS BROWSER DROPDOWN MENU ----*/
+
+ul#nav {margin: 0 auto; width:326px;}
+ul.drop a { display:block; color: #fff; font-size: 14px; text-decoration: none;}
+ul.drop, ul.drop li, ul.drop ul { list-style: none; margin: 0; padding: 0; border: 1px solid #fff; background: #555; color: #fff;}
+ul.drop {z-index: 597;}
+ul.drop li { float: left; line-height: 1.3em; vertical-align: middle; zoom: 1; padding: 5px 10px; }
+ul.drop li.hover, ul.drop li:hover { position: relative; z-index: 599; cursor: default; background: #a00; }
+ul.drop ul { visibility: hidden; position: absolute; top: 100%; left: 0; z-index: 598; width:250px; background: #555; border: 1px solid #fff; }
+ul.drop ul li { float: none; }
+ul.drop ul ul { top: -2px; left: 100%; }
+ul.drop li:hover > ul { visibility: visible }
