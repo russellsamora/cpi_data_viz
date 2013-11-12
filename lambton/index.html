@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Community PlanIt: Visualization</title>
+        <script type='text/javascript' src='//use.typekit.net/yxm0fht.js'></script>
+        <script type='text/javascript'>try{Typekit.load();}catch(e){}</script>
+        
+        <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+        <meta name='description' content='Data Visualization to Community PlanIt'/>
+        <link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+        <link rel='stylesheet' href='../css/cpi.css' type='text/css'/>
+        <script src='../js/jquery-1.9.1.min.js'></script>
+        <script src='../js/d3.v3.min.js'></script>
+        <script src='../js/cloud.js'></script>
+        <script src='../js/viz-lambton.js'></script>
+        <!-- <meta name="google-translate-customization" content="27e36f3f3a4a0efc-9d5560169efbe982-gb7a0a5df82aedf7b-21"></meta> -->
+    </head>
+    <body data-city="lambton" data-zips="10000">
+        <div class = 'navigation'>
+            <h2>Community PlanIt: Recap Visualization</h2>
+            <h3 class="topChallenges currentViz">{Challenges}</h3>
+            <h3 class="topDemographics">{Demographics}</h3>
+            <ul>
+                <li><a href='http://communityplanit.org'>Home</a></li>
+                <li><a href='http://communityplanit.org/all'>All Games</a></li>
+            </ul>
+        </div>
+        <div class = 'questions'>
+            <nav>
+                <div class = 'challengeInfo'>
+                        <div class = 'challengeLink'>
+                            <img class='downButton rotateNinety' src='../img/down.png' alt=''>
+                            <h2 class='selectChallenge'>Select a Challenge</h2>
+                        </div>
+                </div>
+                <div class = 'filters'>
+                    <h2>Filters</h2>
+                    <div id='drop_gender' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Gender</span>
+                        <ul class='dropdown'>
+                            <li><a href='#'>Compare All</a></li>
+                            <li><a href='#'>Male</a></li>
+                            <li><a href='#'>Female</a></li>
+                            <li><a href='#'>N/A</a></li>
+                        </ul>
+                    </div>
+                     <div id='drop_stake' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Stake</span>
+                        <ul class='dropdown'>
+                            <!-- <li><a href='#'>Compare All</a></li> -->
+                            <li><a href='#'>Municipal Employee</a></li>
+                            <li><a href='#'>Farm Employee</a></li>
+                            <li><a href='#'>Resident</a></li>
+                            <li><a href='#'>Observer</a></li>
+                            <li><a href='#'>Student</a></li>
+                            <li><a href='#'>Worker</a></li>
+                            <li><a href='#'>N/A</a></li>
+                        </ul>
+                    </div>
+                     <div id='drop_age' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Age</span>
+                        <ul class='dropdown'>
+                            <li><a href='#'>Compare All</a></li>
+                            <li><a href='#'>under 18</a></li>
+                            <li><a href='#'>18-30</a></li>
+                            <li><a href='#'>31-40</a></li>
+                            <li><a href='#'>41-50</a></li>
+                            <li><a href='#'>over 50</a></li>
+                            <li><a href='#'>N/A</a></li>
+                        </ul>
+                    </div>
+                    <div id='drop_race' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Race</span>
+                        <ul class='dropdown'>
+                            <li><a href='#'>Compare All</a></li>
+                            <li><a href='#'>Black or African American</a></li>
+                            <li><a href='#'>Asian</a></li>
+                            <li><a href='#'>Hispanic, Latino, or Spanish</a></li>
+                            <li><a href='#'>White</a></li>
+                            <li><a href='#'>Multiracial</a></li>
+                            <li><a href='#'>American Indian or Alaskan Native</a></li>
+                            <li><a href='#'>Other</a></li>
+                            <li><a href='#'>N/A</a></li>
+                        </ul>
+                    </div>
+                    <div id='drop_income' class='wrapper-dropdown' tabindex='1'><span class = 'current'>Income</span>
+                        <ul class='dropdown'>
+                            <li><a href='#'>Compare All</a></li>
+                            <li><a href='#'>$0 - $25k</a></li>
+                            <li><a href='#'>$25k - $50k</a></li>
+                            <li><a href='#'>$50k - $75k</a></li>
+                            <li><a href='#'>$75k - $100k</a></li>
+                            <li><a href='#'>over $100k</a></li>
+                            <li><a href='#'>N/A</a></li>
+                        </ul>
+                    </div>
+                    <p class='wrapper-search'><input type='text' name='search' class='searchField' placeholder='keyword...'><span class='submitSearch'>+</span></p>
+                </div>
+            </nav>
+            <div class = 'wrapper'>
+                <div class = 'currentInfo'>
+                </div>
+               
+                <div class = 'compareLabels'>
+                </div>
+                <div class = 'challengeQuestion'><p></p></div>
+                <p class = 'userMessage'>loading lots o' data<br><br><img src='../img/eye1.gif'>&nbsp;&nbsp;<img src='../img/eye2.gif'><br><img src='../img/mouth.gif'><br><br>please be patient...</p>
+                    
+                <div class = 'displayInfo'>
+                    <div class = 'box'>    
+                        <p class='mainResponse'></p>
+                        <p class='viewComments'>view comments</p>
+                        <div class='allComments'>
+                        </div>
+                        <a href='#'><img src='../img/remove.png' alt=''></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class = 'userDemographics'>
+            <p class='fromWhere demoLabel'>Who played from the community?</p>
+            <p class='demoBreakdown demoLabel'>Demographic breakdown</p>
+            <p class='percentCompleted demoLabel'>Percent of challenges completed</p>
+            <p class='communicationType demoLabel'>Communcation with government</p>
+            <p class='workedPlanning demoLabel'>Worked in planning</p>
+            <p class='priorParticipation demoLabel'>Prior planning participation</p>
+            <p class = 'demoFilterList'></p>
+        </div>
+       <!--  <div class = 'formShape tool'></div>
+        <div class = 'stats tool'></div> -->
+        <p class='helpButton'>?</p>
+        <div class='helpArea'>
+            <div class = 'content'>
+                <h2>Basics:</h2>
+                <p>
+                    This is a data visualization of all the responses and comments for every challenge in your game of Community PlanIt.  To begin, simply select a challenge from the dropdown menu. 
+                </p> 
+                <p>
+                    Switch modes by selecting a button on the right.  There are three modes:
+                    <br>
+                    <ul>
+                        <li>Bubble mode: Represents every response in a challenge as a bubble</li>
+                        <li>Word cloud mode: Shows the most frequently used words based on size</li>
+                        <li>Demographic mode: Displays an infographic of the players' backgrounds</li>
+                    </ul>
+                </p>
+
+                <h2>What stuff means:</h2>
+                <p>
+                Each bubble represents a single response to that challenge.  The bigger the bubble, the more popular the response.  
+                </p>
+                <p>
+                    The color is a quantitative indicator of the sentiment of a response:
+                    <img class='spectrum' src='../img/spectrum2.png'> 
+                </p>
+                <h2>Filters: </h2>
+                <p>
+                    You can refine the responses by choosing one (or more) demographic filters in the dropdowns.  You can also choose to create a custom keyword filter which will scan the responses to display any response using that keyword.
+                </p>
+                <h2>Interaction: </h2>
+                <p>
+                    You can view a respone by clicking a bubble. If a response has comments there will be a button to show them. Click the filter word (in the bottom left or in amongst the bubbles) to remove it. You can also play with the bubbles by dragging them around!
+                </p>
+                <p class='centerText'>{click anywhere to close}</p>
+            </div>
+        </div>
+        <div class='helpArea2'>
+            <div class = 'content'>
+                <h2>Basics:</h2>
+                <p>
+                    This is a data visualization of all the responses and comments for every challenge in your game of Community PlanIt.  To begin, simply select a challenge from the dropdown menu. 
+                </p> 
+                <p>
+                    Switch modes by selecting a button on the right.  There are three modes:
+                    <br>
+                    <ul>
+                        <li>Bubble mode: Represents every response in a challenge as a bubble</li>
+                        <li>Word cloud mode: Shows the most frequently used words based on size</li>
+                        <li>Demographic mode: Displays an infographic of the players' backgrounds</li>
+                    </ul>
+                </p>
+
+                <h2>What stuff means:</h2>
+                <p>
+                Each bubble represents a single response to that challenge.  The bigger the bubble, the more popular the response.  
+                </p>
+                <p>
+                    The color is a quantitative indicator of the sentiment of a response:
+                    <img class='spectrum' src='../img/spectrum2.png'> 
+                </p>
+                <h2>Filters: </h2>
+                <p>
+                    You can refine the responses by choosing one (or more) demographic filters in the dropdowns.  You can also choose to create a custom keyword filter which will scan the responses to display any response using that keyword.
+                </p>
+                <h2>Interaction: </h2>
+                <p>
+                    You can view a respone by clicking a bubble. If a response has comments there will be a button to show them. Click the filter word (in the bottom left or in amongst the bubbles) to remove it. You can also play with the bubbles by dragging them around!
+                </p>
+                <p class='centerText'>{click anywhere to close}</p>
+            </div>
+        </div>
+        <div class = 'bubbleMode tool'></div>
+        <div class = 'cloudMode tool'></div>
+        <div class = 'demographicMode tool'></div>
+        <p class = 'demoHover'><span></span></p>
+        <p class = 'resetDemo'>Reset</p>
+        <div class = 'filterList'>
+        </div>  
+    </body>
+</html>

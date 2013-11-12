@@ -1833,15 +1833,15 @@ function resetDemoData() {
             "n/a": 0
         },
         stake: {
+            "work on cape": 0,
+            "year-round cape resident": 0,
+            "cape second home owner": 0,
+            "vacationer": 0,
+            "regular visitor": 0,
+            "student":0,
             "business owner": 0,
-            "community organizer or activist": 0,
-            "educator": 0,
-            "resident": 0,
+            "municipal employee": 0,
             "observer": 0,
-            "religious leader": 0,
-            "student": 0,
-            "volunteer": 0,
-            "worker": 0,
             "n/a": 0
         },
         income: {

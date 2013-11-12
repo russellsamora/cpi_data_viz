@@ -707,6 +707,7 @@ function start(filter) {
                 return d.len;
             }
             // console.log('enter: ',d.user_id);
+            
             return radiusScale(d.popular);
         })
         .style('fill', function(d,i) {
@@ -1198,7 +1199,6 @@ function recharge() {
     force.charge(function(d){
         if(d.label) {
             if(d.len > 12) {
-                console.log('pow');
                 return -Math.pow(d.len, 2.0);
             }
             return -Math.pow(d.len, 2.0) * 4;
@@ -1833,12 +1833,10 @@ function resetDemoData() {
             "n/a": 0
         },
         stake: {
-            "business owner": 0,
-            "community organizer or activist": 0,
-            "educator": 0,
             "resident": 0,
             "observer": 0,
-            "religious leader": 0,
+            "municipal employee": 0,
+            "farm employee": 0,
             "student": 0,
             "volunteer": 0,
             "worker": 0,
@@ -2177,6 +2175,7 @@ function updateText() {
 }
 
 function setupDonuts(){
+    // .each(function(d) { this._current = d.quantity; }) // store the initial values
     for(var category in demoFilterDonut) {
         var path = demoFilterDonut[category].selectAll("path")
         .data(donut(demoFilterArray[category]))
@@ -2184,7 +2183,6 @@ function setupDonuts(){
             .attr("fill", function(d, i) {
                 return demoColors[i];
             })
-            // .each(function(d) { this._current = d.quantity; }) // store the initial values
             .attr("d", arc)
             .on('mouseover', showCategory)
             .on('mouseout', hideCategory)
